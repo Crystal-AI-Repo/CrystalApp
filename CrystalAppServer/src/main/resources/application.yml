@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: CrystalAppServer
+  ai:
+    openai:
+      api-key: xxxx
+      # Dispatcher Host
+      base-url: http://127.0.0.1:5210
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST}/${MYSQL_DATABASE}
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
