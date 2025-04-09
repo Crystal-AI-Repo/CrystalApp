@@ -7,6 +7,36 @@ const debug = true
 export const proxyPrefixDispatcher = "/dispatcher-api"
 export const apiPrefixDispatcher = proxyPrefixDispatcher + "/api/v1"
 
+export function doGet<T>(
+    url: string,
+    headers: object,
+    params: object
+): Promise<Result<T>> {
+    return new Promise<Result<T>>(async (resolve, reject) => {
+        const result = await internalGet<T>(url, headers, params)
+        if (result.code == 200) {
+            resolve(result)
+        } else {
+            reject(result)
+        }
+    })
+}
+
+export function doPost<T>(
+    url: string,
+    headers: object,
+    params: object
+): Promise<Result<T>> {
+    return new Promise<Result<T>>(async (resolve, reject) => {
+        const result = await internalPost<T>(url, headers, params)
+        if (result.code == 200) {
+            resolve(result)
+        } else {
+            reject(result)
+        }
+    })
+}
+
 export function internalGet<T>(
     url: string,
     headers: object,

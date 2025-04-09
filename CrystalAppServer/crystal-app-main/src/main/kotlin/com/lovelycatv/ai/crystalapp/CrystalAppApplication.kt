@@ -5,7 +5,7 @@ import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 
 @SpringBootApplication(scanBasePackages = ["com.lovelycatv"])
-@MapperScan(value = ["com.lovelycatv.auth.mapper"])
+@MapperScan(value = ["com.lovelycatv.auth.mapper", "com.lovelycatv.ai.crystalapp.mapper"])
 class CrystalAppApplication
 
 fun main(args: Array<String>) {
