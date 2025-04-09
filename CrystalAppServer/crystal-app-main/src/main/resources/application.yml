@@ -1,3 +1,7 @@
+server:
+  # Even if the default port is 8080,
+  # the server.port should not be removed in any case
+  port: 8080
 spring:
   application:
     name: CrystalAppServer
@@ -6,11 +10,11 @@ spring:
       api-key: xxxx
       # Dispatcher Host
       base-url: http://127.0.0.1:5210
-  #security:
-  #  oauth2:
-  #    resourceserver:
-  #      jwt:
-  #        issuer-uri: http://127.0.0.1:8080
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://127.0.0.1:${server.port}
 
   datasource:
     url: jdbc:mysql://${MYSQL_HOST}/${MYSQL_DATABASE}
@@ -20,3 +24,11 @@ spring:
     redis:
       host: 127.0.0.1
       port: 6001
+
+crystal:
+  front-base-url: http://localhost:5173
+  oauth2:
+    # Do not edit client-id
+    client-id: crystal-app
+    client-secret: crystal-app
+    auth-front-base-url: http://localhost:6173

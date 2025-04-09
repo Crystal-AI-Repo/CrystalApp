@@ -2,9 +2,9 @@ package com.lovelycatv.auth.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.lovelycatv.ai.crystalapp.common.Result
-import feign.Request
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.security.core.Authentication
 import org.springframework.security.oauth2.core.OAuth2Error
@@ -37,7 +37,7 @@ class ConsentAuthorizationResponseHandler(
         authentication: Authentication
     ) {
         val redirectUri = this.getAuthorizationResponseUri(authentication)
-        if (request.method.equals(Request.HttpMethod.POST.name) && UrlUtils.isAbsoluteUrl(consentPageUrl)) {
+        if (request.method.equals(HttpMethod.POST.name()) && UrlUtils.isAbsoluteUrl(consentPageUrl)) {
             response.characterEncoding = StandardCharsets.UTF_8.name()
             response.contentType = MediaType.APPLICATION_JSON_VALUE
             response.writer.write(ObjectMapper().writeValueAsString(Result.success("authorized", redirectUri)))

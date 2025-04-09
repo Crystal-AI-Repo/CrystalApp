@@ -78,7 +78,7 @@ class SecurityConfig(
 
         http.authorizeHttpRequests {
             // Permit all static resources
-            it.requestMatchers("/assets/**", "/webjars/**", "/login").permitAll()
+            it.requestMatchers("/assets/**", "/webjars/**", "/login", "/auth/token").permitAll()
                 .anyRequest().authenticated()
         }.formLogin { formLogin: FormLoginConfigurer<HttpSecurity?> ->
             formLogin.loginPage(AuthGlobalConstants.CUSTOM_LOGIN_PAGE_URI)

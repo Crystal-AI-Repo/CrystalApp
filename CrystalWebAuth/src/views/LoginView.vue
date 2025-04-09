@@ -15,10 +15,10 @@ if (!nonceId || !targetUrl) {
     background: 'rgba(0, 0, 0, 0.7)',
   })
 
-  // Jump to the correct login page
-  location.href = "http://127.0.0.1:8080/oauth2/authorize?client_id=crystal-app&response_type=code&scope=profile&redirect_uri=http%3A%2F%2Flocalhost%3A5173%2Fconsent"
-
-  loading.close()
+  setTimeout(() => {
+    // Jump to the correct login page
+    location.href = "http://127.0.0.1:8080/oauth2/authorize?client_id=crystal-appaa&response_type=code&scope=profile&redirect_uri=http%3A%2F%2Flocalhost%3A5173%2Fauth%2Fconsent"
+  }, 1000)
 }
 
 interface LoginForm {

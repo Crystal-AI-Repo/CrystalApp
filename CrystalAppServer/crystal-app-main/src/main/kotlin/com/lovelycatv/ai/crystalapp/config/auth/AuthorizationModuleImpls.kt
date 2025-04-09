@@ -1,9 +1,10 @@
-package com.lovelycatv.ai.crystalapp.config
+package com.lovelycatv.ai.crystalapp.config.auth
 
 import com.lovelycatv.ai.crystalapp.GlobalConstants
 import com.lovelycatv.ai.crystalapp.common.data.kv.ExpiringKeyValueStore
 import com.lovelycatv.ai.crystalapp.common.data.kv.InMemoryKeyValueStore
 import com.lovelycatv.ai.crystalapp.common.i18n.I18nMap
+import com.lovelycatv.ai.crystalapp.config.CrystalAppSettings
 import com.lovelycatv.auth.api.AuthorizationModuleConfigure
 import com.lovelycatv.auth.data.ScopeDescription
 import org.springframework.jdbc.core.JdbcTemplate
@@ -24,14 +25,15 @@ import org.springframework.stereotype.Component
 @Component
 class AuthorizationModuleImpls(
     private val jdbcTemplate: JdbcTemplate,
-    clientRepositoryConfig: ClientRepositoryConfig
+    clientRepositoryConfig: ClientRepositoryConfig,
+    private val crystalAppSettings: CrystalAppSettings
 ) : AuthorizationModuleConfigure() {
     private val registeredClientRepository = clientRepositoryConfig.registeredClientRepository(jdbcTemplate, this.securityConfig.passwordEncoder)
 
     override fun setSecurityConfiguration(): SecurityConfiguration {
         return object : SecurityConfiguration() {
-            override fun setCustomFrontLoginUrl() = GlobalConstants.CUSTOM_FRONT_LOGIN_PAGE_URI
-            override fun setCustomFrontConsentUrl() = GlobalConstants.CUSTOM_FRONT_CONSENT_PAGE_URI
+            override fun setCustomFrontLoginUrl() = GlobalConstants.getCustomFrontLoginPageUrl(crystalAppSettings.oauth2.authFrontBaseUrl)
+            override fun setCustomFrontConsentUrl() = GlobalConstants.getCustomFrontConsentPageUrl(crystalAppSettings.oauth2.authFrontBaseUrl)
             override fun setPasswordEncoder() = BCryptPasswordEncoder()
         }
     }
