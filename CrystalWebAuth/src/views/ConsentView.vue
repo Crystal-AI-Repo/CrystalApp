@@ -2,7 +2,6 @@
 
 import {useI18n} from "vue-i18n";
 import {applicationFormUrlEncoded, doGet, doPost} from "@/net/axios-request.ts";
-import {ElMessage} from "element-plus";
 import {ref} from "vue";
 import {getQueryString} from "@/utils/url-utils.ts";
 
@@ -40,12 +39,12 @@ function submit() {
   const data = new FormData()
   if (checkedScopes.value.length > 0) {
     checkedScopes.value.forEach((e: any) => data.append('scope', e))
+  } else {
+    ElMessage.warning("At least one permission should be permitted")
+    return
   }
   data.append('state', scopeInfo.value.state)
   data.append('client_id', scopeInfo.value.clientId)
-  console.log(checkedScopes.value)
-  console.log(data.get("state"))
-  console.log(data.get("client_id"))
   console.log(data.get("scope"))
   doPost<string>(
       `/api${scopeInfo.value.requestURI}`,
@@ -78,7 +77,8 @@ function submit() {
             :checked="true"
             disabled
         />
-
+      </el-checkbox-group>
+      <el-checkbox-group v-model="checkedScopes" size="medium" class="flex-vertical">
         <el-checkbox
             v-for="(item, index) in scopeInfo.scopes"
             :key="index"
