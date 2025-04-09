@@ -11,6 +11,7 @@
     <groupId>com.lovelycatv.ai</groupId>
     <artifactId>CrystalApp</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
     <name>CrystalApp</name>
     <description>CrystalApp</description>
     <url/>
@@ -20,6 +21,11 @@
     <developers>
         <developer/>
     </developers>
+    <modules>
+        <module>authorization-module</module>
+        <module>crystal-app-main</module>
+        <module>common-module</module>
+    </modules>
     <scm>
         <connection/>
         <developerConnection/>
@@ -73,6 +79,10 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-authorization-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-client</artifactId>
         </dependency>
 
@@ -83,6 +93,12 @@
         </dependency>
 
         <!-- Data -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <version>3.5.5</version>
+        </dependency>
+
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
@@ -147,10 +163,27 @@
             <version>${kotlin.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- Others -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.lovelycatv.ai.crystalapp</groupId>
+                <artifactId>common-module</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lovelycatv.auth</groupId>
+                <artifactId>authorization-module</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -169,16 +202,10 @@
     </dependencyManagement>
 
     <build>
-        <sourceDirectory>src/main/kotlin</sourceDirectory>
-        <testSourceDirectory>src/test/kotlin</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.graalvm.buildtools</groupId>
                 <artifactId>native-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
