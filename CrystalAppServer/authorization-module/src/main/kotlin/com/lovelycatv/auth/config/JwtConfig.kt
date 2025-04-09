@@ -1,19 +1,26 @@
 package com.lovelycatv.auth.config
 
+import com.lovelycatv.auth.entity.UserEntity
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet
 import com.nimbusds.jose.jwk.source.JWKSource
 import com.nimbusds.jose.proc.SecurityContext
 import org.springframework.context.annotation.Bean
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration
+import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer
 import org.springframework.stereotype.Component
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
 import java.util.*
+import java.util.stream.Collectors
 
 
 /**
@@ -67,5 +74,28 @@ class JwtConfig {
         }
         return keyPair
     }
+
+    /**
+     * Custom jwt payloads
+     *
+     * @return Instance of [OAuth2TokenCustomizer]
+     */
+    @Bean
+    fun oAuth2TokenCustomizer(): OAuth2TokenCustomizer<JwtEncodingContext> {
+        return OAuth2TokenCustomizer<JwtEncodingContext> { context ->
+            val principal = context.getPrincipal<Authentication>().principal
+            if (principal is UserDetails) {
+                val authorities: Collection<GrantedAuthority> = principal.authorities
+                val authoritySet = authorities.mapNotNull { it.authority }.toSet()
+                val claims = context.claims
+                claims.claim("authorities", authoritySet)
+
+                if (principal is UserEntity) {
+                    claims.claim("uid", principal.id)
+                }
+            }
+        }
+    }
+
 
 }

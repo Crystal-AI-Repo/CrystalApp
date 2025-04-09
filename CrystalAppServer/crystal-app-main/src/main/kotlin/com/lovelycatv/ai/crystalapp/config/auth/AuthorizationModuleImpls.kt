@@ -32,6 +32,10 @@ class AuthorizationModuleImpls(
 
     override fun setSecurityConfiguration(): SecurityConfiguration {
         return object : SecurityConfiguration() {
+            override fun setAllowedUrls(): List<String> {
+                return listOf("/auth/token")
+            }
+
             override fun setCustomFrontLoginUrl() = GlobalConstants.getCustomFrontLoginPageUrl(crystalAppSettings.oauth2.authFrontBaseUrl)
             override fun setCustomFrontConsentUrl() = GlobalConstants.getCustomFrontConsentPageUrl(crystalAppSettings.oauth2.authFrontBaseUrl)
             override fun setPasswordEncoder() = BCryptPasswordEncoder()

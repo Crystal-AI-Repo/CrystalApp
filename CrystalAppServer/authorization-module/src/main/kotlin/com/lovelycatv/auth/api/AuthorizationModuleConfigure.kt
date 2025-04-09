@@ -29,9 +29,12 @@ abstract class AuthorizationModuleConfigure {
     protected abstract fun setAuthorizationConfiguration(): AuthorizationConfiguration
 
     abstract class SecurityConfiguration {
+        val allowedUrls by lazy { setAllowedUrls() }
         val customFrontLoginUrl by lazy { setCustomFrontLoginUrl() }
         val customFrontConsentUrl by lazy { setCustomFrontConsentUrl() }
         val passwordEncoder by lazy { setPasswordEncoder() }
+
+        protected abstract fun setAllowedUrls(): List<String>
 
         protected abstract fun setCustomFrontLoginUrl(): String
 

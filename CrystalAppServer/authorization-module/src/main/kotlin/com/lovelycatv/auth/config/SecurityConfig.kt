@@ -1,31 +1,38 @@
 package com.lovelycatv.auth.config
 
+import com.fasterxml.jackson.databind.Module
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.lovelycatv.auth.AuthGlobalConstants
 import com.lovelycatv.auth.api.AuthorizationModuleConfigure
+import com.lovelycatv.auth.entity.UserEntity
 import com.lovelycatv.auth.extension.KVSecurityContextRepository
 import com.lovelycatv.auth.handler.ConsentAuthenticationFailureHandler
 import com.lovelycatv.auth.handler.ConsentAuthorizationResponseHandler
 import com.lovelycatv.auth.handler.LoginFailureHandler
 import com.lovelycatv.auth.handler.LoginSuccessHandler
+import com.lovelycatv.auth.misc.UserEntityMixin
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.MediaType
 import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configurers.FormLoginConfigurer
-import org.springframework.security.core.userdetails.User
-import org.springframework.security.core.userdetails.UserDetails
-import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.security.jackson2.SecurityJackson2Modules
+import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService
+import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService.OAuth2AuthorizationParametersMapper
+import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService.OAuth2AuthorizationRowMapper
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer
+import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings
-import org.springframework.security.provisioning.InMemoryUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher
 import org.springframework.web.filter.CorsFilter
+import java.util.*
 
 
 /**
@@ -78,7 +85,7 @@ class SecurityConfig(
 
         http.authorizeHttpRequests {
             // Permit all static resources
-            it.requestMatchers("/assets/**", "/webjars/**", "/login", "/auth/token").permitAll()
+            it.requestMatchers("/assets/**", "/webjars/**", "/login", *authorizationModuleImplementations.securityConfig.allowedUrls.toTypedArray()).permitAll()
                 .anyRequest().authenticated()
         }.formLogin { formLogin: FormLoginConfigurer<HttpSecurity?> ->
             formLogin.loginPage(AuthGlobalConstants.CUSTOM_LOGIN_PAGE_URI)
@@ -118,7 +125,35 @@ class SecurityConfig(
 
     @Bean
     fun authorizationService(): OAuth2AuthorizationService {
-        return authorizationModuleImplementations.serviceConfig.oAuth2AuthorizationService
+        val authorizationService = authorizationModuleImplementations.serviceConfig.oAuth2AuthorizationService
+
+        /**
+         * fix: The class with xxx is not in the allowlist.
+         * https://github.com/spring-projects/spring-security/issues/4370
+         */
+        if (authorizationService is JdbcOAuth2AuthorizationService) {
+            val objectMapper = ObjectMapper()
+            val classLoader = JdbcOAuth2AuthorizationService::class.java.classLoader
+            val securityModules = SecurityJackson2Modules.getModules(classLoader)
+            objectMapper.registerModules(securityModules)
+            objectMapper.registerModule(OAuth2AuthorizationServerJackson2Module())
+            // Kotlin supports
+            objectMapper.registerKotlinModule()
+            objectMapper.addMixIn(
+                UserEntity::class.java,
+                UserEntityMixin::class.java
+            )
+
+            val rowMapper = OAuth2AuthorizationRowMapper(authorizationModuleImplementations.repoConfig.clientRepository)
+            rowMapper.setObjectMapper(objectMapper)
+            authorizationService.setAuthorizationRowMapper(rowMapper)
+
+            val oAuth2AuthorizationParametersMapper = OAuth2AuthorizationParametersMapper()
+            oAuth2AuthorizationParametersMapper.setObjectMapper(objectMapper)
+            authorizationService.setAuthorizationParametersMapper(oAuth2AuthorizationParametersMapper)
+        }
+
+        return authorizationService
     }
 
     @Bean
@@ -134,15 +169,5 @@ class SecurityConfig(
     @Bean
     fun authorizationServerSettings(): AuthorizationServerSettings? {
         return AuthorizationServerSettings.builder().build()
-    }
-
-    @Bean
-    fun users(passwordEncoder: PasswordEncoder): UserDetailsService {
-        val user: UserDetails = User.withUsername("admin")
-            .password(passwordEncoder.encode("123456"))
-            .roles("admin", "normal")
-            .authorities("app", "web")
-            .build()
-        return InMemoryUserDetailsManager(user)
     }
 }
