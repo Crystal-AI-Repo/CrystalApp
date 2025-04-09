@@ -29,10 +29,13 @@ abstract class AuthorizationModuleConfigure {
     protected abstract fun setAuthorizationConfiguration(): AuthorizationConfiguration
 
     abstract class SecurityConfiguration {
+        val corsAllowedOrigins by lazy { setCorsAllowedOrigins() }
         val allowedUrls by lazy { setAllowedUrls() }
         val customFrontLoginUrl by lazy { setCustomFrontLoginUrl() }
         val customFrontConsentUrl by lazy { setCustomFrontConsentUrl() }
         val passwordEncoder by lazy { setPasswordEncoder() }
+
+        protected abstract fun setCorsAllowedOrigins(): List<String>
 
         protected abstract fun setAllowedUrls(): List<String>
 

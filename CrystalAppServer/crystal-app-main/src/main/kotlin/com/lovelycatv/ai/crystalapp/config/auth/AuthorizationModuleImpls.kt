@@ -32,6 +32,12 @@ class AuthorizationModuleImpls(
 
     override fun setSecurityConfiguration(): SecurityConfiguration {
         return object : SecurityConfiguration() {
+            override fun setCorsAllowedOrigins(): List<String> {
+                return listOf(
+                    crystalAppSettings.frontBaseUrl
+                )
+            }
+
             override fun setAllowedUrls(): List<String> {
                 return listOf("/auth/token")
             }
