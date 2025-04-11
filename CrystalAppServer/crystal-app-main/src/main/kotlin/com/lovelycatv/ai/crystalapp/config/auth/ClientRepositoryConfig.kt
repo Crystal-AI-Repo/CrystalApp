@@ -12,6 +12,8 @@ import org.springframework.security.oauth2.server.authorization.client.JdbcRegis
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings
+import java.time.Duration
 import java.util.*
 
 
@@ -48,6 +50,13 @@ class ClientRepositoryConfig(
             .scope(OidcScopes.OPENID)
             .scope(OidcScopes.PROFILE)
             .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
+            .tokenSettings(
+                TokenSettings.builder()
+                    .accessTokenTimeToLive(Duration.ofDays(14))
+                    .refreshTokenTimeToLive(Duration.ofDays(31))
+                    .authorizationCodeTimeToLive(Duration.ofMinutes(5))
+                    .build()
+            )
             .build()
 
         // If you do not want to save into database, use InMemoryRegisteredClientRepository

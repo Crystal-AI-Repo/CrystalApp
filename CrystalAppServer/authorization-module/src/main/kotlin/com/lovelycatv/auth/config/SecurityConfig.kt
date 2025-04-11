@@ -29,6 +29,7 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer
 import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher
 import org.springframework.web.filter.CorsFilter
@@ -66,7 +67,11 @@ class SecurityConfig(
 
         // As a resource server
         http.oauth2ResourceServer {
-            it.jwt(Customizer.withDefaults())
+            it.jwt { jwt ->
+                jwt.jwtAuthenticationConverter {
+                    JwtAuthenticationToken(it, CustomJwtAuthenticationConverter().convert(it), it.getClaimAsString("sub"))
+                }
+            }
         }
 
         http.securityContext {

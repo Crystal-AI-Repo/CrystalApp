@@ -8,6 +8,10 @@ import MainCategoryView from "@/views/main/MainCategoryView.vue";
 import MainAuthorView from "@/views/main/MainAuthorView.vue";
 import {getUserAuthToken} from "@/utils/auth-utils.ts";
 import ErrorView from "@/views/ErrorView.vue";
+import ManagerView from "@/views/manager/ManagerView.vue";
+import ProfileView from "@/views/manager/ProfileView.vue";
+import NewRoleView from "@/views/manager/NewRoleView.vue";
+import ModelManagerView from "@/views/manager/ModelManagerView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -44,6 +48,28 @@ const router = createRouter({
       path: "/rank",
       name: "rank",
       component: MainRankView
+    },
+    {
+      path: "/manager",
+      name: "manager",
+      component: ManagerView,
+      children: [
+        {
+          path: 'profile',
+          name: 'manager-profile',
+          component: ProfileView
+        },
+        {
+          path: 'newCharacter',
+          name: 'manager-newCharacter',
+          component: NewRoleView
+        },
+        {
+          path: 'models',
+          name: 'manager-models',
+          component: ModelManagerView
+        },
+      ]
     },
     {
       path: '/auth/consent',

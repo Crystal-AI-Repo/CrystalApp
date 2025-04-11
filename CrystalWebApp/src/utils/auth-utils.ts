@@ -25,3 +25,7 @@ export function clearUserAuthToken() {
     localStorage.removeItem("r_ticket")
     localStorage.removeItem("ticket_expires")
 }
+
+export function userTokenHeader() {
+  return { 'Authorization': `Bearer ${localStorage.getItem("ticket")}` }
+}

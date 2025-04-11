@@ -13,11 +13,17 @@ export function doGet<T>(
     params: object
 ): Promise<Result<T>> {
     return new Promise<Result<T>>(async (resolve, reject) => {
-        const result = await internalGet<T>(url, headers, params)
-        if (result.code == 200) {
-            resolve(result)
-        } else {
-            reject(result)
+        try {
+            const result = await internalGet<T>(url, headers, params)
+            if (result.code == 200) {
+                resolve(result)
+            } else {
+                ElMessage.error(result.message)
+                reject(result)
+            }
+        } catch (e) {
+            ElMessage.error(e.message)
+            reject(e)
         }
     })
 }
@@ -28,12 +34,19 @@ export function doPost<T>(
     params: object
 ): Promise<Result<T>> {
     return new Promise<Result<T>>(async (resolve, reject) => {
-        const result = await internalPost<T>(url, headers, params)
-        if (result.code == 200) {
-            resolve(result)
-        } else {
-            reject(result)
+        try {
+            const result = await internalPost<T>(url, headers, params)
+            if (result.code == 200) {
+                resolve(result)
+            } else {
+                ElMessage.error(result.message)
+                reject(result)
+            }
+        } catch (e) {
+            ElMessage.error(e.message)
+            reject(e)
         }
+
     })
 }
 
@@ -86,7 +99,10 @@ export function rawGet<T>(
             if (debug) console.log(`==> [I] GET Result of [${url}]: `, res)
             const data = resultProcessor(res)
             resolve(data)
-        }).catch((err: AxiosError) => reject({ code: err.response?.status, message: err.message, data: null }))
+        }).catch((err: AxiosError) => {
+            const code = err.response?.status
+            reject({ code: code ? code : 500, message: err.message, data: null })
+        })
     })
 }
 
@@ -102,13 +118,17 @@ export function rawPost<T>(
         if (debug) console.log("<== [I] POST: " + url)
         if (debug) console.log("    [I] POST Headers: ", headers)
         if (debug) console.log("    [I] POST Params: ", data)
+
         axios.post<T>(url, data,{
             headers: headers
         }).then((res: AxiosResponse<T>) => {
             const data = resultProcessor(res)
             if (debug) console.log(`==> [I] POST Result of [${url}]: `, res)
             resolve(data)
-        }).catch((err: AxiosError) => reject({ code: err.response?.status, message: err.message, data: null }))
+        }).catch((err: AxiosError) => {
+            const code = err.response?.status
+            reject({ code: code ? code : 500, message: err.message, data: null })
+        })
     })
 }
 

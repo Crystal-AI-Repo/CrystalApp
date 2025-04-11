@@ -76,7 +76,7 @@ function logout() {
         <template #default>
           <div class="avatar-float-container">
             <div class="nav">
-              <div class="nav__item" @click="router.push('/profile')">
+              <div class="nav__item" @click="router.push('/manager/profile')">
                 {{ t('home.header.avatar.nav.profile') }}
               </div>
               <div class="nav__item" @click="logout()">
@@ -141,7 +141,7 @@ function logout() {
   }
 
   .search-box {
-    width: 50%;
+    width: 40%;
     height: 40px;
     background: #fff;
     border-radius: 20px;

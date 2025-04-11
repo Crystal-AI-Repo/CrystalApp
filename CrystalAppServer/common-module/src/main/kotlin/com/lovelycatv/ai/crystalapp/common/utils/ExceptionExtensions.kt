@@ -28,7 +28,7 @@ fun <R> catchException(
 
 fun catchException(
     printStackTrace: Boolean = true,
-    onException: ((e: Exception) -> Unit)? = null,
+    onException: ((e: Exception) -> Result<*>?)? = null,
     fx: () -> Result<*>
 ): Result<*> {
     return try {
@@ -37,7 +37,7 @@ fun catchException(
         if (printStackTrace) {
             e.printStackTrace()
         }
-        onException?.invoke(e)
-        Result.internalServerError(e.message ?: e::class.java.canonicalName)
+        onException?.invoke(e) ?:
+            Result.internalServerError(e.message ?: e::class.java.canonicalName)
     }
 }

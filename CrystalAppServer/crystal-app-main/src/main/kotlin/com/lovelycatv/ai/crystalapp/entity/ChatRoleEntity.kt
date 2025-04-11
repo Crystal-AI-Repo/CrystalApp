@@ -25,6 +25,8 @@ data class ChatRoleEntity(
     var prompt: String,
     @TableField("greeting_message")
     var greetingMessage: String,
+    @TableField("model_id")
+    var modelId: Long,
     @TableField("max_context_length")
     var maxContextLength: Int,
     @TableField("avatar")

@@ -14,13 +14,13 @@ import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter
 import org.springframework.stereotype.Component
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
 import java.util.*
-import java.util.stream.Collectors
 
 
 /**
@@ -88,7 +88,7 @@ class JwtConfig {
                 val authorities: Collection<GrantedAuthority> = principal.authorities
                 val authoritySet = authorities.mapNotNull { it.authority }.toSet()
                 val claims = context.claims
-                claims.claim("authorities", authoritySet)
+                claims.claim("permissions", authoritySet)
 
                 if (principal is UserEntity) {
                     claims.claim("uid", principal.id)
@@ -97,5 +97,10 @@ class JwtConfig {
         }
     }
 
-
+    @Bean
+    fun customJwtAuthenticationConverter(): JwtAuthenticationConverter? {
+        val converter = JwtAuthenticationConverter()
+        converter.setJwtGrantedAuthoritiesConverter(CustomJwtAuthenticationConverter())
+        return converter
+    }
 }
