@@ -1,5 +1,7 @@
 package com.lovelycatv.auth.config
 
+import com.lovelycatv.auth.AuthGlobalConstants
+import com.lovelycatv.auth.api.AuthorizationModuleConfigure
 import com.lovelycatv.auth.entity.UserEntity
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.jwk.RSAKey
@@ -29,23 +31,39 @@ import java.util.*
  * @version 1.0
  */
 @Component
-class JwtConfig {
+class JwtConfig(
+    private val authorizationModuleConfigure: AuthorizationModuleConfigure
+) {
     /**
      * Jwt Source Configuration
      *
      * @return JWKSource
      */
     @Bean
-    fun jwkSource(): ImmutableJWKSet<SecurityContext?> {
-        val keyPair = generateRsaKey()
-        val publicKey: RSAPublicKey = keyPair.public as RSAPublicKey
-        val privateKey: RSAPrivateKey = keyPair.private as RSAPrivateKey
-        val rsaKey: RSAKey = RSAKey.Builder(publicKey)
-            .privateKey(privateKey)
-            .keyID(UUID.randomUUID().toString())
-            .build()
-        val jwkSet = JWKSet(rsaKey)
-        return ImmutableJWKSet<SecurityContext?>(jwkSet)
+    fun jwkSource(): ImmutableJWKSet<SecurityContext> {
+        val store = authorizationModuleConfigure.repoConfig.jwtSourceStore
+        val cached = store.get(AuthGlobalConstants.JWK_SOURCE_CACHE_KEY)
+
+        val jwkSet = if (cached.isNullOrBlank()) {
+            val keyPair = generateRsaKey()
+            val publicKey: RSAPublicKey = keyPair.public as RSAPublicKey
+            val privateKey: RSAPrivateKey = keyPair.private as RSAPrivateKey
+            val rsaKey: RSAKey = RSAKey.Builder(publicKey)
+                .privateKey(privateKey)
+                .keyID(UUID.randomUUID().toString())
+                .build()
+
+            val jwkSet = JWKSet(rsaKey)
+            val jwtSetString = jwkSet.toString(false)
+            store.set(AuthGlobalConstants.JWK_SOURCE_CACHE_KEY, jwtSetString)
+
+            jwkSet
+        } else {
+            JWKSet.parse(cached)
+        }
+
+
+        return ImmutableJWKSet<SecurityContext>(jwkSet)
     }
 
     /**

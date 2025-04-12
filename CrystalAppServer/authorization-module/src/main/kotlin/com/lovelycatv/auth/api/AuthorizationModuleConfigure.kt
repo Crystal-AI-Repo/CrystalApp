@@ -1,6 +1,7 @@
 package com.lovelycatv.auth.api
 
 import com.lovelycatv.ai.crystalapp.common.data.kv.ExpiringKeyValueStore
+import com.lovelycatv.ai.crystalapp.common.data.kv.KeyValueStore
 import com.lovelycatv.ai.crystalapp.common.i18n.I18nMap
 import com.lovelycatv.auth.data.ScopeDescription
 import org.springframework.security.core.context.SecurityContext
@@ -48,11 +49,14 @@ abstract class AuthorizationModuleConfigure {
 
     abstract class RepositoryConfiguration {
         val securityContextStore by lazy { setSecurityContextStore() }
+        val jwtSourceStore by lazy { setJwtSourceStore() }
         val clientRepository by lazy { setClientRepository() }
 
         protected abstract fun setClientRepository(): RegisteredClientRepository
 
         protected abstract fun setSecurityContextStore(): ExpiringKeyValueStore<String, SecurityContext>
+
+        protected abstract fun setJwtSourceStore(): KeyValueStore<String, String>
     }
 
     abstract class ServiceConfiguration {

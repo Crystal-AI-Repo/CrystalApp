@@ -6,5 +6,7 @@ object AuthGlobalConstants {
     const val NONCE_HEADER_NAME = "nonceId"
 
     const val SECURITY_CONTEXT_PREFIX_KEY = "securityContext:"
+    const val JWK_SOURCE_CACHE_KEY = "jwkSource"
+
     const val DEFAULT_TIMEOUT_SECONDS = 300
 }

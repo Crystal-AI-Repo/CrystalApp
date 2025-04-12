@@ -3,8 +3,11 @@ package com.lovelycatv.ai.crystalapp.config.auth
 import com.lovelycatv.ai.crystalapp.GlobalConstants
 import com.lovelycatv.ai.crystalapp.common.data.kv.ExpiringKeyValueStore
 import com.lovelycatv.ai.crystalapp.common.data.kv.InMemoryKeyValueStore
+import com.lovelycatv.ai.crystalapp.common.data.kv.KeyValueStore
 import com.lovelycatv.ai.crystalapp.common.i18n.I18nMap
 import com.lovelycatv.ai.crystalapp.config.CrystalAppSettings
+import com.lovelycatv.ai.crystalapp.service.SettingService
+import com.lovelycatv.ai.crystalapp.store.DataBaseSettingsKeyValueStore
 import com.lovelycatv.auth.api.AuthorizationModuleConfigure
 import com.lovelycatv.auth.data.ScopeDescription
 import org.springframework.jdbc.core.JdbcTemplate
@@ -26,7 +29,8 @@ import org.springframework.stereotype.Component
 class AuthorizationModuleImpls(
     private val jdbcTemplate: JdbcTemplate,
     clientRepositoryConfig: ClientRepositoryConfig,
-    private val crystalAppSettings: CrystalAppSettings
+    private val crystalAppSettings: CrystalAppSettings,
+    private val settingService: SettingService
 ) : AuthorizationModuleConfigure() {
     private val registeredClientRepository = clientRepositoryConfig.registeredClientRepository(jdbcTemplate, this.securityConfig.passwordEncoder)
 
@@ -56,6 +60,10 @@ class AuthorizationModuleImpls(
 
             override fun setSecurityContextStore(): ExpiringKeyValueStore<String, SecurityContext> {
                 return InMemoryKeyValueStore()
+            }
+
+            override fun setJwtSourceStore(): KeyValueStore<String, String> {
+                return DataBaseSettingsKeyValueStore(settingService)
             }
         }
     }
