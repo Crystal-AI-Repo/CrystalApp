@@ -11,12 +11,12 @@ import com.baomidou.mybatisplus.annotation.TableName
  * @version 1.0
  */
 @TableName("chat_roles")
-data class ChatRoleEntity(
+data class ChatCharacterEntity(
     @TableId(type = IdType.AUTO)
     @TableField("id")
     var id: Long?,
-    @TableField("author_id")
-    var authorId: Long,
+    @TableField("author_uid")
+    var authorUid: Long,
     @TableField("name")
     var name: String,
     @TableField("description")
@@ -35,4 +35,15 @@ data class ChatRoleEntity(
     var createdTime: Long,
     @TableField("modified_time")
     var modifiedTime: Long
-)
+) {
+    fun toPublicVO() = PublicVO(id, authorUid, name, description, createdTime, modifiedTime)
+
+    data class PublicVO(
+        var id: Long?,
+        var authorUid: Long,
+        var name: String,
+        var description: String,
+        var createdTime: Long,
+        var modifiedTime: Long
+    )
+}

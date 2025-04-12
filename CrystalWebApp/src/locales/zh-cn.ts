@@ -37,12 +37,21 @@ export default {
             characterNameTips: "此角色的名称",
             characterDescription: "描述",
             characterDescriptionTips: "此角色的描述",
+            characterModel: "模型",
+            characterModelTips: "此角色使用的大型语言模型",
             characterPrompt: "提示词",
             characterPromptTips: "在这里写角色的所有设定",
             characterGreeting: "打招呼消息",
             characterGreetingTips: "角色发送给用户的第一句话",
             button: {
                 submit: "提交"
+            },
+            text: {
+                emptyCharacterName: "角色名称不能为空",
+                emptyCharacterDescription: "角色描述不能为空",
+                emptyCharacterPrompt: "提示词不能为空",
+                emptyCharacterGreeting: "角色打招呼消息不能为空",
+                emptyCharacterModel: "请选择一个模型",
             }
         },
         models: {

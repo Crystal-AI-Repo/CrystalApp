@@ -1,9 +1,10 @@
 package com.lovelycatv.auth.config
 
-import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.lovelycatv.ai.crystalapp.common.utils.logger
 import com.lovelycatv.auth.AuthGlobalConstants
+import com.lovelycatv.auth.annotations.NoAuthorization
 import com.lovelycatv.auth.api.AuthorizationModuleConfigure
 import com.lovelycatv.auth.entity.UserEntity
 import com.lovelycatv.auth.extension.KVSecurityContextRepository
@@ -12,8 +13,11 @@ import com.lovelycatv.auth.handler.ConsentAuthorizationResponseHandler
 import com.lovelycatv.auth.handler.LoginFailureHandler
 import com.lovelycatv.auth.handler.LoginSuccessHandler
 import com.lovelycatv.auth.misc.UserEntityMixin
+import jakarta.annotation.security.PermitAll
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -32,8 +36,11 @@ import org.springframework.security.oauth2.server.authorization.settings.Authori
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher
+import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.filter.CorsFilter
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping
 import java.util.*
+import java.util.stream.Collectors
 
 
 /**
@@ -44,8 +51,12 @@ import java.util.*
 @Configuration
 class SecurityConfig(
     private val authorizationModuleImplementations: AuthorizationModuleConfigure,
-    private val corsFilter: CorsFilter
-) { @Bean
+    private val corsFilter: CorsFilter,
+    private val applicationContext: ApplicationContext
+) {
+    val logger = logger()
+
+    @Bean
     @Throws(Exception::class)
     fun authorizationServerSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http)
@@ -88,10 +99,64 @@ class SecurityConfig(
         http.csrf { it.disable() }
         http.cors { it.disable() }
 
-        http.authorizeHttpRequests {
+        /**
+         * Find out all methods annotated by @PermitAll or @NoAuthorization
+         */
+        val permitUrls = mutableMapOf<HttpMethod, MutableSet<String>>()
+        val fxAddPermitUrls = fun (method: HttpMethod, urls: Set<String>) {
+            permitUrls[method] = (permitUrls[method] ?: mutableSetOf()).apply { addAll(urls) }
+        }
+        val requestMappingHandlerMapping = applicationContext.getBean("requestMappingHandlerMapping") as RequestMappingHandlerMapping
+        val handlerMethodMap = requestMappingHandlerMapping.handlerMethods
+        handlerMethodMap.forEach { (info, handlerMethod) ->
+            if (handlerMethod.hasMethodAnnotation(PermitAll::class.java) || handlerMethod.hasMethodAnnotation(NoAuthorization::class.java)) {
+                val urls: MutableSet<String> = HashSet()
+                if (info.patternsCondition != null) {
+                    urls.addAll(info.patternsCondition?.patterns ?: emptyList())
+                }
+
+                if (info.pathPatternsCondition != null) {
+                    urls.addAll(info.pathPatternsCondition?.patterns?.map { e -> e.patternString } ?: emptyList())
+                }
+
+                info.methodsCondition.methods.forEach { method ->
+                    if (method != null) {
+                        when (method) {
+                            RequestMethod.GET -> fxAddPermitUrls.invoke(HttpMethod.GET, urls)
+                            RequestMethod.HEAD -> fxAddPermitUrls.invoke(HttpMethod.HEAD, urls)
+                            RequestMethod.POST -> fxAddPermitUrls.invoke(HttpMethod.POST, urls)
+                            RequestMethod.PUT -> fxAddPermitUrls.invoke(HttpMethod.PUT, urls)
+                            RequestMethod.PATCH -> fxAddPermitUrls.invoke(HttpMethod.PATCH, urls)
+                            RequestMethod.DELETE -> fxAddPermitUrls.invoke(HttpMethod.DELETE, urls)
+                            RequestMethod.OPTIONS -> fxAddPermitUrls.invoke(HttpMethod.OPTIONS, urls)
+                            RequestMethod.TRACE -> fxAddPermitUrls.invoke(HttpMethod.TRACE, urls)
+                        }
+                    }
+                }
+            }
+        }
+        permitUrls.forEach {
+            logger.info("These following urls will not be authorized")
+            logger.info("${it.key.name()}:")
+            it.value.forEach { url ->
+                logger.info("  $url")
+            }
+        }
+
+        http.authorizeHttpRequests { registry ->
             // Permit all static resources
-            it.requestMatchers("/assets/**", "/webjars/**", "/login", *authorizationModuleImplementations.securityConfig.allowedUrls.toTypedArray()).permitAll()
-                .anyRequest().authenticated()
+            registry.requestMatchers(
+                "/assets/**",
+                "/webjars/**",
+                "/login",
+                *authorizationModuleImplementations.securityConfig.allowedUrls.toTypedArray()
+            ).permitAll()
+
+            permitUrls.forEach {
+                registry.requestMatchers(it.key, *it.value.toTypedArray()).permitAll()
+            }
+
+            registry.anyRequest().authenticated()
         }.formLogin { formLogin: FormLoginConfigurer<HttpSecurity?> ->
             formLogin.loginPage(AuthGlobalConstants.CUSTOM_LOGIN_PAGE_URI)
                 .successHandler(LoginSuccessHandler())

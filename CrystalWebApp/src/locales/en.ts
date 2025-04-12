@@ -37,12 +37,21 @@ export default {
             characterNameTips: "This is the name for this character",
             characterDescription: "Description",
             characterDescriptionTips: "Description of this character",
+            characterModel: "Model",
+            characterModelTips: "The model used by this character",
             characterPrompt: "Prompt",
             characterPromptTips: "Write all the character settings here",
             characterGreeting: "Greeting Message",
             characterGreetingTips: "The first message the character sends to the user",
             button: {
                 submit: "Submit"
+            },
+            text: {
+                emptyCharacterName: "Character name could not be empty",
+                emptyCharacterDescription: "Character description could not be empty",
+                emptyCharacterPrompt: "Character prompt could not be empty",
+                emptyCharacterGreeting: "Character greeting message could not be empty",
+                emptyCharacterModel: "Please select a model",
             }
         },
         models: {

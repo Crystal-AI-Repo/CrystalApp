@@ -1,7 +1,7 @@
 package com.lovelycatv.ai.crystalapp.mapper
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper
-import com.lovelycatv.ai.crystalapp.entity.ChatRoleEntity
+import com.lovelycatv.ai.crystalapp.entity.ChatCharacterEntity
 import org.apache.ibatis.annotations.Mapper
 
 /**
@@ -10,4 +10,4 @@ import org.apache.ibatis.annotations.Mapper
  * @version 1.0
  */
 @Mapper
-interface ChatRoleMapper : BaseMapper<ChatRoleEntity?>
+interface ChatCharacterMapper : BaseMapper<ChatCharacterEntity?>
