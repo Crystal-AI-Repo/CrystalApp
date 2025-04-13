@@ -43,5 +43,7 @@ data class Result<T> @JsonCreator constructor(
 
         fun internalServerError(message: String) = Result(RESPONSE_CODE_INTERNAL_SERVER_ERROR, message, null)
 
+        fun notResourceOwner() = forbidden("You are not the resource owner")
+
     }
 }

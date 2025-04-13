@@ -147,3 +147,5 @@ export const textPlain = "text/plain"
 export const textHtml = "text/html"
 
 export const applicationFormUrlEncoded = "application/x-www-form-urlencoded"
+
+export const applicationFormUrlEncodedHeader = { 'Content-Type': applicationFormUrlEncoded }

@@ -10,7 +10,7 @@ import {getUserAuthToken} from "@/utils/auth-utils.ts";
 import ErrorView from "@/views/ErrorView.vue";
 import ManagerView from "@/views/manager/ManagerView.vue";
 import ProfileView from "@/views/manager/profile/ProfileView.vue";
-import NewRoleView from "@/views/manager/NewRoleView.vue";
+import NewRoleView from "@/views/manager/CharacterEditView.vue";
 import ModelManagerView from "@/views/manager/ModelManagerView.vue";
 import ProfileMyChatsView from "@/views/manager/profile/ProfileMyChatsView.vue";
 import ProfileMyCharactersView from "@/views/manager/profile/ProfileMyCharactersView.vue";

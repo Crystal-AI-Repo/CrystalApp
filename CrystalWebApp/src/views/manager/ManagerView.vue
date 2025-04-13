@@ -1,13 +1,17 @@
 <script setup lang="ts">
 
 import HeaderComponent from "@/components/HeaderComponent.vue";
-import {ref} from "vue";
+import {ref, watch} from "vue";
 import router from "@/router";
 import {useI18n} from "vue-i18n";
+import {startWith} from "@/utils/string-utils.ts";
 
 const { t } = useI18n()
 
 const currentPath = ref(location.pathname)
+watch(router.currentRoute, () => {
+  currentPath.value = location.pathname
+})
 
 interface SideMenuItem {
   displayName: string,
@@ -49,7 +53,7 @@ function jumpTo(path: string) {
             v-for="(item, index) in items"
             :class="{
               'nav__item': true,
-              'nav__item--active': currentPath == item.path
+              'nav__item--active': startWith(currentPath, item.path)
             }"
             @click="jumpTo(item.path)">
           {{ item.translate ? t(item.displayName) : item.displayName }}<span class="flex-grow-1" />>

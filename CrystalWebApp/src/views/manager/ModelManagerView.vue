@@ -1,8 +1,8 @@
 <script setup lang="ts">
 
 import {reactive, ref} from "vue";
-import type {ModelController} from "@/net/model-controller.ts";
-import {deleteModel, getAllModels, saveModel} from "@/net/model-controller.ts";
+import type {Model} from "@/net/api/model.ts";
+import {deleteModel, getAllModels, saveModel} from "@/net/api/model.ts";
 import {useI18n} from "vue-i18n";
 import {Delete, Edit} from "@element-plus/icons-vue";
 import type {FormInstance, FormRules} from "element-plus";
@@ -10,7 +10,7 @@ import {showSimpleDialog} from "@/utils/dialog-utils.ts";
 
 const { t } = useI18n()
 
-const models = ref<ModelController[]>([])
+const models = ref<Model[]>([])
 
 const refreshing = ref(true)
 
@@ -24,6 +24,7 @@ refreshData()
 
 const emptyModelData = () => {
   return {
+    id: 0,
     contextLength: 1024,
     displayName: "",
     qualifiedName: ""
@@ -32,7 +33,7 @@ const emptyModelData = () => {
 const modelEditDialogVisible = ref(false)
 // 0 Add 1 Edit
 const modelEditDialogMode = ref(0)
-const modelEditDialogData = ref<ModelController>(emptyModelData())
+const modelEditDialogData = ref<Model>(emptyModelData())
 const modelEditDialogForm = ref<FormInstance>()
 
 function addModelButton() {
@@ -41,7 +42,7 @@ function addModelButton() {
   modelEditDialogVisible.value = true
 }
 
-function editModelButton(index: number, model: ModelController) {
+function editModelButton(index: number, model: Model) {
   modelEditDialogData.value = model
   modelEditDialogMode.value = 1
   modelEditDialogVisible.value = true
@@ -66,7 +67,7 @@ async function editModelDialogConfirmed(formEl: FormInstance | undefined) {
   })
 }
 
-function deleteModelButton(index: number, model: ModelController) {
+function deleteModelButton(index: number, model: Model) {
   showSimpleDialog(
       t,
       t('dialog.warning'),
@@ -86,7 +87,7 @@ function deleteModelButton(index: number, model: ModelController) {
   )
 }
 
-const modelFormRules = reactive<FormRules<ModelController>>({
+const modelFormRules = reactive<FormRules<Model>>({
   displayName: [
     { required: true, message: t('manager.models.text.emptyModelName'), trigger: 'blur'}
   ],
@@ -120,7 +121,7 @@ const modelFormRules = reactive<FormRules<ModelController>>({
       </el-button>
     </div>
 
-    <el-table :data="models" style="width: 100%" size="default" v-loading="refreshing">
+    <el-table class="mt-4" :data="models" style="width: 100%" size="default" v-loading="refreshing">
       <el-table-column prop="displayName" :label="t('manager.models.modelName')"  />
       <el-table-column prop="qualifiedName" :label="t('manager.models.modelQualifiedName')" />
       <el-table-column prop="contextLength" :label="t('manager.models.contextLength')" width="180" />

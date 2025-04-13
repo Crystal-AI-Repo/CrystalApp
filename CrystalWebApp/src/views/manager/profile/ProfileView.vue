@@ -1,8 +1,8 @@
 <script setup lang="ts">
 
 import {ref, watch} from "vue";
-import type {User} from "@/net/user-controller.ts";
-import {getMyProfile, updateMyProfile} from "@/net/user-controller.ts";
+import type {User} from "@/net/api/user-controller.ts";
+import {getMyProfile, updateMyProfile} from "@/net/api/user-controller.ts";
 import TabComponent, {TabItem} from "@/components/TabComponent.vue";
 import router from "@/router";
 import {Check, Close, Edit} from "@element-plus/icons-vue";
@@ -88,7 +88,7 @@ async function submitEditProfile() {
 
     <TabComponent :current-path="currentPath" :items="tabItems" :align="0" size="default" />
 
-    <RouterView />
+    <RouterView class="mt-4" />
   </main>
 </template>
 

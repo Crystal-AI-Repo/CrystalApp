@@ -30,19 +30,19 @@
     --color-error-container: #ffdad6;
     --color-on-error-container: #93000a;
 
-    --font-size-small-s: .8rem;
+    --font-size-small-s: .75rem;
     --font-size-small: 0.85rem;
-    --font-size-small-p: .9rem;
+    --font-size-small-p: .95rem;
 
-    --font-size-default-s: .95rem;
+    --font-size-default-s: .9rem;
     --font-size-default: 1rem;
-    --font-size-default-p: 1.05rem;
+    --font-size-default-p: 1.1rem;
 
-    --font-size-medium-s: 1.3rem;
+    --font-size-medium-s: 1.25rem;
     --font-size-medium: 1.35rem;
-    --font-size-medium-p: 1.4rem;
+    --font-size-medium-p: 1.45rem;
 
-    --font-size-large-s: 1.75rem;
+    --font-size-large-s: 1.7rem;
     --font-size-large: 1.8rem;
-    --font-size-large-p: 1.85rem;
+    --font-size-large-p: 1.9rem;
 }

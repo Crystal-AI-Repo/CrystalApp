@@ -6,6 +6,7 @@ import com.lovelycatv.ai.crystalapp.common.transformServiceFuncResult
 import com.lovelycatv.ai.crystalapp.common.utils.catchException
 import com.lovelycatv.ai.crystalapp.service.ChatCharacterService
 import com.lovelycatv.auth.annotations.NoAuthorization
+import com.lovelycatv.auth.utils.AuthPrincipal
 import com.lovelycatv.auth.utils.withPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -51,6 +52,22 @@ class ChatCharacterController(
                     prompt = prompt,
                     greeting = greeting
                 ).transformServiceFuncResult()
+            }
+        }
+    }
+
+    @GetMapping("/details")
+    fun getCharacterDetails(authPrincipal: AuthPrincipal, @RequestParam("id") characterId: Long): Result<*> {
+        return catchException {
+            val character = chatCharacterService.getById(characterId)
+            if (character != null) {
+                if (character.authorUid == authPrincipal.userId) {
+                    Result.success("", character)
+                } else {
+                    Result.notResourceOwner()
+                }
+            } else {
+                Result.badRequest("Character $characterId not found")
             }
         }
     }

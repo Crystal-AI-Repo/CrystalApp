@@ -39,6 +39,8 @@ export default {
             }
         },
         newCharacter: {
+            titleNewCharacter: "New Character",
+            titleEditCharacter: "Edit {name}",
             characterName: "Name",
             characterNameTips: "This is the name for this character",
             characterDescription: "Description",
@@ -58,6 +60,7 @@ export default {
                 emptyCharacterPrompt: "Character prompt could not be empty",
                 emptyCharacterGreeting: "Character greeting message could not be empty",
                 emptyCharacterModel: "Please select a model",
+                invalidCharacterId: "Invalid character id"
             }
         },
         models: {

@@ -1,18 +1,19 @@
 import {applicationFormUrlEncoded, doGet, doPost} from "@/net/axios-request.ts";
 import {userTokenHeader} from "@/utils/auth-utils.ts";
 
-export interface ModelController {
+export interface Model {
+    id: number,
     displayName: string,
     qualifiedName: string,
     contextLength: number
 }
 
 export async function getAllModels() {
-    const result = await doGet<ModelController[]>("/api/model/list", {...userTokenHeader()}, {})
+    const result = await doGet<Model[]>("/api/model/list", {...userTokenHeader()}, {})
     return result.data
 }
 
-export async function saveModel(model: ModelController) {
+export async function saveModel(model: Model) {
     const result = await doPost(
         "/api/model/save",
         {...userTokenHeader(), 'Content-Type': applicationFormUrlEncoded},
@@ -24,7 +25,7 @@ export async function saveModel(model: ModelController) {
     return result.code == 200
 }
 
-export async function deleteModel(model: ModelController) {
+export async function deleteModel(model: Model) {
     const result = await doPost(
         "/api/model/delete",
         {...userTokenHeader(), 'Content-Type': applicationFormUrlEncoded},

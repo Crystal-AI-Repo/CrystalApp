@@ -39,6 +39,8 @@ export default {
             }
         },
         newCharacter: {
+            titleNewCharacter: "创建新角色",
+            titleEditCharacter: "编辑 {name}",
             characterName: "名称",
             characterNameTips: "此角色的名称",
             characterDescription: "描述",
@@ -58,6 +60,7 @@ export default {
                 emptyCharacterPrompt: "提示词不能为空",
                 emptyCharacterGreeting: "角色打招呼消息不能为空",
                 emptyCharacterModel: "请选择一个模型",
+                invalidCharacterId: "无效的角色 Id"
             }
         },
         models: {
