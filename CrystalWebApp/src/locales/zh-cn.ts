@@ -32,6 +32,12 @@ export default {
             newCharacter: "创建新角色",
             models: "模型"
         },
+        profile: {
+            tab: {
+                myChats: "我的聊天",
+                myCharacters: "我创建的角色"
+            }
+        },
         newCharacter: {
             characterName: "名称",
             characterNameTips: "此角色的名称",

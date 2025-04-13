@@ -4,10 +4,14 @@ import {getCenterColors, toHexColor} from "@/utils/color-utils.ts";
 import {useI18n} from "vue-i18n";
 import router from "@/router";
 import HeaderComponent from "@/components/HeaderComponent.vue";
+import TabComponent, {TabItem} from "@/components/TabComponent.vue";
 
 const { t } = useI18n()
 
 const currentPath = ref(location.pathname)
+watch(router.currentRoute, () => {
+  currentPath.value = location.pathname
+})
 
 const subtitle = ref<string>("Your next choice for your characters!")
 const subtitleCharColors = ref<number[][]>([])
@@ -25,6 +29,19 @@ fxUpdateSubtitleCharColors()
 // setInterval(() => {
 //   subtitleCharColors.value = moveRight(subtitleCharColors.value, 1)
 // }, 50)
+
+const tabItems = ref<TabItem[]>([
+  {
+    name: 'home.tab.commendations',
+    translate: true,
+    path: '/explore'
+  },
+  {
+    name: 'home.tab.latest',
+    translate: true,
+    path: '/latest'
+  }
+])
 
 </script>
 
@@ -45,20 +62,7 @@ fxUpdateSubtitleCharColors()
       </p>
     </div>
 
-    <div class="tab-container flex flex-horizontal flex-center gap-8 mt-8">
-      <div
-          :class="{'tab__item': true, 'tab__item--active': currentPath == '/explore'}"
-          @click="router.push('/explore'); currentPath = '/explore'"
-      >
-        {{ t('home.tab.commendations') }}
-      </div>
-      <div
-          :class="{'tab__item': true, 'tab__item--active': currentPath == '/latest'}"
-          @click="router.push('/latest'); currentPath = '/latest'"
-      >
-        {{ t('home.tab.latest') }}
-      </div>
-    </div>
+    <TabComponent :items="tabItems" :current-path="currentPath" :align="1" size="large" />
 
     <RouterView />
   </main>
@@ -87,21 +91,6 @@ fxUpdateSubtitleCharColors()
     .subtitle__character {
       text-shadow: 0 0 .5rem #AAAAAA50;
     }
-  }
-}
-
-.tab-container {
-  width: 100%;
-
-  .tab__item {
-    font-size: 2rem;
-    color: #aaa;
-    cursor: pointer;
-    user-select: none;
-  }
-
-  .tab__item--active {
-    color: #020303;
   }
 }
 </style>

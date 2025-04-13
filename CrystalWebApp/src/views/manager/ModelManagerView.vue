@@ -1,8 +1,8 @@
 <script setup lang="ts">
 
 import {reactive, ref} from "vue";
-import type {Model} from "@/net/model.ts";
-import {deleteModel, getAllModels, saveModel} from "@/net/model.ts";
+import type {ModelController} from "@/net/model-controller.ts";
+import {deleteModel, getAllModels, saveModel} from "@/net/model-controller.ts";
 import {useI18n} from "vue-i18n";
 import {Delete, Edit} from "@element-plus/icons-vue";
 import type {FormInstance, FormRules} from "element-plus";
@@ -10,7 +10,7 @@ import {showSimpleDialog} from "@/utils/dialog-utils.ts";
 
 const { t } = useI18n()
 
-const models = ref<Model[]>([])
+const models = ref<ModelController[]>([])
 
 const refreshing = ref(true)
 
@@ -32,7 +32,7 @@ const emptyModelData = () => {
 const modelEditDialogVisible = ref(false)
 // 0 Add 1 Edit
 const modelEditDialogMode = ref(0)
-const modelEditDialogData = ref<Model>(emptyModelData())
+const modelEditDialogData = ref<ModelController>(emptyModelData())
 const modelEditDialogForm = ref<FormInstance>()
 
 function addModelButton() {
@@ -41,7 +41,7 @@ function addModelButton() {
   modelEditDialogVisible.value = true
 }
 
-function editModelButton(index: number, model: Model) {
+function editModelButton(index: number, model: ModelController) {
   modelEditDialogData.value = model
   modelEditDialogMode.value = 1
   modelEditDialogVisible.value = true
@@ -66,7 +66,7 @@ async function editModelDialogConfirmed(formEl: FormInstance | undefined) {
   })
 }
 
-function deleteModelButton(index: number, model: Model) {
+function deleteModelButton(index: number, model: ModelController) {
   showSimpleDialog(
       t,
       t('dialog.warning'),
@@ -86,7 +86,7 @@ function deleteModelButton(index: number, model: Model) {
   )
 }
 
-const modelFormRules = reactive<FormRules<Model>>({
+const modelFormRules = reactive<FormRules<ModelController>>({
   displayName: [
     { required: true, message: t('manager.models.text.emptyModelName'), trigger: 'blur'}
   ],

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType
 import com.baomidou.mybatisplus.annotation.TableField
 import com.baomidou.mybatisplus.annotation.TableId
 import com.baomidou.mybatisplus.annotation.TableName
+import com.lovelycatv.ai.crystalapp.common.data.DataBaseEntity
 
 /**
  * @author lovelycat
@@ -18,4 +19,4 @@ data class UserRoleEntity(
     var userId: Long,
     @TableField("role_id")
     var roleId: Long
-)
+) : DataBaseEntity

@@ -32,6 +32,12 @@ export default {
             newCharacter: "New Character",
             models: "Models"
         },
+        profile: {
+            tab: {
+                myChats: "My Chats",
+                myCharacters: "My Characters"
+            }
+        },
         newCharacter: {
             characterName: "Name",
             characterNameTips: "This is the name for this character",
@@ -55,22 +61,22 @@ export default {
             }
         },
         models: {
-            modelName: "Model Name",
+            modelName: "ModelController Name",
             modelQualifiedName: "Qualified Name",
             contextLength: "Context Length",
             operations: "Operations",
-            addModel: "Add Model",
+            addModel: "Add ModelController",
             button: {
                 add: "Add",
                 refresh: "Refresh"
             },
             text: {
-                emptyModelName: "Model Name could not be empty",
+                emptyModelName: "ModelController Name could not be empty",
                 emptyModelQualifiedName: "Qualified Name could not be empty",
                 invalidContextLength: "Context Length should large than 0",
-                modelSavedSuccessfully: "Model {modelName} saved successfully",
+                modelSavedSuccessfully: "ModelController {modelName} saved successfully",
                 deleteModel: "Do you want to delete the model {modelName} ({ modelQualifiedName }) ?",
-                modelDeleted: "Model {modelName} deleted successfully"
+                modelDeleted: "ModelController {modelName} deleted successfully"
             }
         }
     }

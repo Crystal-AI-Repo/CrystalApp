@@ -2,6 +2,8 @@ package com.lovelycatv.auth.service.impl
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl
+import com.lovelycatv.ai.crystalapp.common.ServiceFuncResult
+import com.lovelycatv.auth.dto.UpdateProfileDTO
 import com.lovelycatv.auth.entity.RoleEntity
 import com.lovelycatv.auth.entity.UserEntity
 import com.lovelycatv.auth.mapper.UserMapper
@@ -58,5 +60,16 @@ class UserServiceImpl(
 
     override fun getMapper(): UserMapper {
         return this.userMapper
+    }
+
+    override fun updateProfile(uid: Long, dto: UpdateProfileDTO): ServiceFuncResult<*> {
+        val user = getById(uid) ?: return ServiceFuncResult.failed("User $uid not found")
+        return if (updateById(user.apply {
+            this.nickname = dto.nickname
+        })) {
+            ServiceFuncResult.success("User profile updated successfully")
+        } else {
+            ServiceFuncResult.failed("Could not update user profile")
+        }
     }
 }

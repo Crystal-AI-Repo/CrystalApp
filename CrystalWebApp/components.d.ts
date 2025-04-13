@@ -34,6 +34,7 @@ declare module 'vue' {
     HeaderComponent: typeof import('./src/components/HeaderComponent.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    TabComponent: typeof import('./src/components/TabComponent.vue')['default']
   }
   export interface ComponentCustomProperties {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

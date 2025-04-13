@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType
 import com.baomidou.mybatisplus.annotation.TableField
 import com.baomidou.mybatisplus.annotation.TableId
 import com.baomidou.mybatisplus.annotation.TableName
+import com.lovelycatv.ai.crystalapp.common.data.DataBaseEntity
 
 /**
  * @author lovelycat
@@ -20,4 +21,4 @@ data class PermissionEntity(
     var name: String,
     @TableField("description")
     var description: String
-)
+) : DataBaseEntity

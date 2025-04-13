@@ -1,6 +1,8 @@
 package com.lovelycatv.auth.service
 
 import com.baomidou.mybatisplus.extension.service.IService
+import com.lovelycatv.ai.crystalapp.common.ServiceFuncResult
+import com.lovelycatv.auth.dto.UpdateProfileDTO
 import com.lovelycatv.auth.entity.UserEntity
 import com.lovelycatv.auth.mapper.UserMapper
 
@@ -11,4 +13,6 @@ import com.lovelycatv.auth.mapper.UserMapper
  */
 interface UserService : IService<UserEntity?> {
     fun getMapper(): UserMapper
+
+    fun updateProfile(uid: Long, dto: UpdateProfileDTO): ServiceFuncResult<*>
 }

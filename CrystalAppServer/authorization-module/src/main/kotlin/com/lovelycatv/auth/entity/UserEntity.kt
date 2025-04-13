@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.annotation.TableField
 import com.baomidou.mybatisplus.annotation.TableId
 import com.baomidou.mybatisplus.annotation.TableName
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.lovelycatv.ai.crystalapp.common.data.DataBaseEntity
+import com.lovelycatv.ai.crystalapp.common.data.Desensitization
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 
@@ -25,13 +27,26 @@ data class UserEntity(
     var nickname: String,
     @TableField("email")
     var email: String,
+    @TableField("avatar")
+    var avatar: String,
     @TableField("registered_time")
     var registeredTime: Long,
     @TableField("modified_time")
     var modifiedTime: Long,
     @TableField("activated")
     var activated: Boolean
-) : UserDetails {
+) : UserDetails, Desensitization, DataBaseEntity {
+
+    fun toPublicVO() = PublicVO(id, username, nickname, avatar, activated)
+
+    data class PublicVO(
+        var id: Long,
+        var username: String,
+        var nickname: String,
+        var avatar: String,
+        var activated: Boolean
+    )
+
     @TableField(exist = false)
     private val authorities: MutableCollection<GrantedAuthority> = mutableListOf()
 
@@ -77,6 +92,11 @@ data class UserEntity(
     @JsonIgnore
     override fun isEnabled(): Boolean {
         return super.isEnabled()
+    }
+
+    override fun desensitize() {
+        this.password = ""
+        this.email = ""
     }
 
 }

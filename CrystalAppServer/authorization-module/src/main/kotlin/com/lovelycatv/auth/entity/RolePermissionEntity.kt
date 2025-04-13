@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType
 import com.baomidou.mybatisplus.annotation.TableField
 import com.baomidou.mybatisplus.annotation.TableId
 import com.baomidou.mybatisplus.annotation.TableName
+import com.lovelycatv.ai.crystalapp.common.data.DataBaseEntity
 
 /**
  * @author lovelycat
@@ -18,7 +19,7 @@ data class RolePermissionEntity(
     var roleId: Long,
     @TableField("permission_id")
     var permissionId: Long
-) {
+) : DataBaseEntity {
     @TableField(exist = false)
     var permission: PermissionEntity? = null
 }

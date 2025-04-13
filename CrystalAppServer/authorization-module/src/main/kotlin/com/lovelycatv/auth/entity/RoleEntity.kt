@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType
 import com.baomidou.mybatisplus.annotation.TableField
 import com.baomidou.mybatisplus.annotation.TableId
 import com.baomidou.mybatisplus.annotation.TableName
+import com.lovelycatv.ai.crystalapp.common.data.DataBaseEntity
 
 /**
  * @author lovelycat
@@ -22,7 +23,7 @@ data class RoleEntity(
     var description: String,
     @TableField("extends")
     var extends: Long
-) {
+) : DataBaseEntity {
     @TableField(exist = false)
     val permissions: MutableList<PermissionEntity> = mutableListOf()
     @TableField(exist = false)

@@ -17,7 +17,7 @@ data class ServiceFuncResult<T>(
 
         fun failed(message: String) = ServiceFuncResult(false, message, null)
 
-        fun notResourceOwner() = ServiceFuncResult.failed("You are not the owner of this resource")
+        fun notResourceOwner() = failed("You are not the owner of this resource")
     }
 }
 

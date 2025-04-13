@@ -2,8 +2,8 @@
 
 import {onMounted, reactive, ref} from "vue";
 import {useI18n} from "vue-i18n";
-import type {Model} from "@/net/model.ts";
-import {getAllModels, saveModel} from "@/net/model.ts";
+import type {ModelController} from "@/net/model-controller.ts";
+import {getAllModels, saveModel} from "@/net/model-controller.ts";
 import {FormInstance, FormRules} from "element-plus";
 
 const { t } = useI18n()
@@ -25,7 +25,7 @@ const form = ref<NewRoleForm>({
   characterModel: ""
 })
 
-const formRules = reactive<FormRules<Model>>({
+const formRules = reactive<FormRules<ModelController>>({
   characterName: [
     { required: true, message: t('manager.newCharacter.text.emptyCharacterName'), trigger: 'blur'}
   ],
@@ -43,7 +43,7 @@ const formRules = reactive<FormRules<Model>>({
   ]
 })
 
-const availableModels = ref<Model[]>()
+const availableModels = ref<ModelController[]>()
 
 onMounted(async () => {
   availableModels.value = await getAllModels()
@@ -79,7 +79,7 @@ async function submit(formEl: FormInstance | undefined) {
         <p>{{ t('manager.newCharacter.characterDescriptionTips') }}</p>
       </el-alert>
 
-      <!-- Role Model -->
+      <!-- Role ModelController -->
       <el-form-item :label="t('manager.newCharacter.characterModel')" prop="characterModel">
         <el-select v-model="form.characterModel" placeholder="Select" style="width: 240px">
           <el-option

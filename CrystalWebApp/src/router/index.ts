@@ -9,9 +9,11 @@ import MainAuthorView from "@/views/main/MainAuthorView.vue";
 import {getUserAuthToken} from "@/utils/auth-utils.ts";
 import ErrorView from "@/views/ErrorView.vue";
 import ManagerView from "@/views/manager/ManagerView.vue";
-import ProfileView from "@/views/manager/ProfileView.vue";
+import ProfileView from "@/views/manager/profile/ProfileView.vue";
 import NewRoleView from "@/views/manager/NewRoleView.vue";
 import ModelManagerView from "@/views/manager/ModelManagerView.vue";
+import ProfileMyChatsView from "@/views/manager/profile/ProfileMyChatsView.vue";
+import ProfileMyCharactersView from "@/views/manager/profile/ProfileMyCharactersView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -57,7 +59,19 @@ const router = createRouter({
         {
           path: 'profile',
           name: 'manager-profile',
-          component: ProfileView
+          component: ProfileView,
+          children: [
+            {
+              path: '',
+              name: 'manager-profile-my-chats',
+              component: ProfileMyChatsView
+            },
+            {
+              path: 'myCharacters',
+              name: 'manager-profile-my-characters',
+              component: ProfileMyCharactersView
+            }
+          ]
         },
         {
           path: 'newCharacter',
