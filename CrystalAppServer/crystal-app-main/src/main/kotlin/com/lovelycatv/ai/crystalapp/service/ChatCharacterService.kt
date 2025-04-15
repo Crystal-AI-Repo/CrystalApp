@@ -21,7 +21,26 @@ interface ChatCharacterService : IService<ChatCharacterEntity?> {
         greeting: String
     ): ServiceFuncResult<*>
 
-    fun getUserCreatedCharacters(uid: Long, page: Long, pageSize: Long = 10): ServiceFuncResult<PagedData<ChatCharacterEntity>>
+    /**
+     * Delete chat character (mark as deleted)
+     *
+     * @param userId Requester
+     * @param characterId CharacterId
+     * @param hardDelete If true, the chat character will be deleted forever and related data should be deleted too
+     */
+    fun deleteChatCharacter(userId: Long, characterId: Long, hardDelete: Boolean): ServiceFuncResult<*>
+
+    /**
+     * Update character delete marker
+     *
+     * @param characterId CharacterId
+     * @param authorUid AuthorUserId, if null, Resource Owner will be not validated
+     * @param deleted Is deleted
+     * @return Result of updation
+     */
+    fun updateChatCharacterDeletion(characterId: Long, authorUid: Long?, deleted: Boolean): Boolean
+
+    fun getUserCreatedCharacters(uid: Long, page: Long, pageSize: Long = 10, includingDeleted: Boolean): ServiceFuncResult<PagedData<ChatCharacterEntity>>
 
     fun getMostRecentCharacters(page: Long, pageSize: Long): ServiceFuncResult<PagedData<ChatCharacterEntity>>
 }

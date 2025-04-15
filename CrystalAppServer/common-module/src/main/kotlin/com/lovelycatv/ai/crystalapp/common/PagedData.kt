@@ -20,3 +20,12 @@ fun <T, R> PagedData<T>.mapRecords(fx: (T) -> R): PagedData<R> {
         records = this.records.map(fx)
     )
 }
+
+fun <T, R> PagedData<T>.transformRecords(fx: PagedData<T>.() -> List<R>): PagedData<R> {
+    return PagedData(
+        total = this.total,
+        pages = this.pages,
+        current = this.current,
+        records = fx.invoke(this)
+    )
+}

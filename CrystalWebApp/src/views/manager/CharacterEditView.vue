@@ -2,8 +2,8 @@
 
 import {onMounted, reactive, ref, watch} from "vue";
 import {useI18n} from "vue-i18n";
-import type {Model} from "@/net/api/model.ts";
-import {getAllModels, saveModel} from "@/net/api/model.ts";
+import type {Model} from "@/net/api/model-controller.ts";
+import {getAllModels, saveModel} from "@/net/api/model-controller.ts";
 import {FormInstance, FormRules} from "element-plus";
 import {getQueryString} from "@/utils/url-utils.ts";
 import {ChatCharacter, getChatCharacterDetails, saveChatCharacter} from "@/net/api/chat-character-controller.ts";

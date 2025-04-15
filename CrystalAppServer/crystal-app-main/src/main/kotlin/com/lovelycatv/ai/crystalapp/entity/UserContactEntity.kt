@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType
 import com.baomidou.mybatisplus.annotation.TableField
 import com.baomidou.mybatisplus.annotation.TableId
 import com.baomidou.mybatisplus.annotation.TableName
+import com.lovelycatv.ai.crystalapp.enums.ChatTarget
 
 /**
  * @author lovelycat
@@ -20,5 +21,21 @@ data class UserContactEntity(
     @TableField("contact_type")
     var contactType: Int,
     @TableField("chat_target_id")
-    var chatTargetId: Long
-)
+    var chatTargetId: Long,
+    @TableField("chat_history_start")
+    var chatHistoryStart: Long,
+    @TableField("deleted")
+    var deleted: Boolean
+) {
+    fun toPublicVO() = PublicVO(id!!, contactType, chatTargetId)
+
+    fun getContactTypeEnum() = ChatTarget.getByTypeId(this.contactType)
+
+    data class PublicVO(
+        var id: Long,
+        var contactType: Int,
+        var chatTargetId: Long
+    ) {
+        fun getContactTypeEnum() = ChatTarget.getByTypeId(this.contactType)
+    }
+}

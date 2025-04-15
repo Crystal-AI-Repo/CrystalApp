@@ -1,6 +1,7 @@
 package com.lovelycatv.ai.crystalapp.service.impl
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl
 import com.lovelycatv.ai.crystalapp.common.PagedData
@@ -64,8 +65,9 @@ class ChatCharacterServiceImpl(
                     modelEntity.contextLength,
                     "",
                     System.currentTimeMillis(),
-                    System.currentTimeMillis())
-            )) {
+                    System.currentTimeMillis(),
+                false
+            ))) {
                 ServiceFuncResult.success("Character $name saved successfully")
             } else {
                 ServiceFuncResult.failed("Could not save character")
@@ -73,13 +75,63 @@ class ChatCharacterServiceImpl(
         }
     }
 
+    /**
+     * Delete chat character (mark as deleted)
+     *
+     * @param userId Requester
+     * @param characterId CharacterId
+     * @param hardDelete If true, the chat character will be deleted forever and related data should be deleted too
+     */
+    override fun deleteChatCharacter(userId: Long, characterId: Long, hardDelete: Boolean): ServiceFuncResult<*> {
+        return if (hardDelete) {
+            throw UnsupportedOperationException("Due to some security reasons, this operation not support yet.")
+        } else {
+            if (this.updateChatCharacterDeletion(characterId, userId, true)) {
+                ServiceFuncResult.success("Character deleted successfully")
+            } else {
+                ServiceFuncResult.failed("Could not delete character")
+            }
+        }
+    }
+
+    /**
+     * Update character delete marker
+     *
+     * @param characterId CharacterId
+     * @param authorUid AuthorUserId, if null, Resource Owner will be not validated
+     * @param deleted Is deleted
+     * @return Result of updation
+     */
+    override fun updateChatCharacterDeletion(characterId: Long, authorUid: Long?, deleted: Boolean): Boolean {
+        return update(
+            UpdateWrapper<ChatCharacterEntity>()
+                .set("deleted", deleted)
+                .eq("id", characterId)
+                .apply {
+                    if (authorUid != null) {
+                        this.eq("author_uid", authorUid)
+                    }
+                }
+        )
+    }
+
     override fun getUserCreatedCharacters(
         uid: Long,
         page: Long,
-        pageSize: Long
+        pageSize: Long,
+        includingDeleted: Boolean
     ): ServiceFuncResult<PagedData<ChatCharacterEntity>> {
         val pager = Page<ChatCharacterEntity>(page, pageSize)
-        val result = page(pager, QueryWrapper<ChatCharacterEntity>().eq("author_uid", uid))
+        val result = page(
+            pager,
+            QueryWrapper<ChatCharacterEntity>().apply {
+                if (!includingDeleted) {
+                    this.eq("deleted", false)
+                }
+                this.eq("author_uid", uid)
+                this.orderByDesc("created_time")
+            }
+        )
         return ServiceFuncResult.success(
             "",
             PagedData(
@@ -93,7 +145,7 @@ class ChatCharacterServiceImpl(
 
     override fun getMostRecentCharacters(page: Long, pageSize: Long): ServiceFuncResult<PagedData<ChatCharacterEntity>> {
         val pager = Page<ChatCharacterEntity>(page, pageSize)
-        val result = page(pager, QueryWrapper<ChatCharacterEntity>().orderByDesc("created_time"))
+        val result = page(pager, QueryWrapper<ChatCharacterEntity>().eq("deleted", false).orderByDesc("created_time"))
         return ServiceFuncResult.success(
             "",
             PagedData(

@@ -34,15 +34,18 @@ data class ChatCharacterEntity(
     @TableField("created_time")
     var createdTime: Long,
     @TableField("modified_time")
-    var modifiedTime: Long
+    var modifiedTime: Long,
+    @TableField("deleted")
+    var deleted: Boolean
 ) {
-    fun toPublicVO() = PublicVO(id, authorUid, name, description, createdTime, modifiedTime)
+    fun toPublicVO() = PublicVO(id, authorUid, name, description, avatar, createdTime, modifiedTime)
 
     data class PublicVO(
         var id: Long?,
         var authorUid: Long,
         var name: String,
         var description: String,
+        var avatar: String,
         var createdTime: Long,
         var modifiedTime: Long
     )

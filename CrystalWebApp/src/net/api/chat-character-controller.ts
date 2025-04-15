@@ -1,4 +1,4 @@
-import {applicationFormUrlEncoded, applicationFormUrlEncodedHeader, doGet, doPost} from "@/net/axios-request.ts";
+import {applicationFormUrlEncodedHeader, doGet, doPost} from "@/net/axios-request.ts";
 import {userTokenHeader} from "@/utils/auth-utils.ts";
 import type {PagedData} from "@/net/PagedData.ts";
 
@@ -14,6 +14,22 @@ export interface ChatCharacter {
     avatar: string,
     createdTime: number,
     modifiedTime: number
+}
+
+export const getEmptyChatCharacter = (): ChatCharacter => {
+    return {
+        authorUid: 0,
+        avatar: "",
+        createdTime: 0,
+        description: "",
+        greetingMessage: "",
+        id: 0,
+        maxContextLength: 0,
+        modelId: "",
+        modifiedTime: 0,
+        name: "",
+        prompt: ""
+    }
 }
 
 export interface SaveChatCharacterDTO {
@@ -43,4 +59,8 @@ export async function saveChatCharacter(dto: SaveChatCharacterDTO) {
         {...userTokenHeader(), ...applicationFormUrlEncodedHeader},
         {...dto}
     )
+}
+
+export async function deleteChatCharacter(characterId: number) {
+    return await doPost("/api/character/delete", {...userTokenHeader(), ...applicationFormUrlEncodedHeader}, { id: characterId })
 }

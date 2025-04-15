@@ -27,7 +27,7 @@ class ChatCharacterController(
 ) {
     @PostMapping("/save")
     fun addOrUpdateCharacter(
-        principal: Principal,
+        authPrincipal: AuthPrincipal,
         @RequestParam("id", required = false)
         id: Long?,
         @RequestParam("name")
@@ -42,17 +42,22 @@ class ChatCharacterController(
         greeting: String
     ): Result<*> {
         return catchException {
-            withPrincipal(principal) {
-                chatCharacterService.saveOrUpdateCharacter(
-                    caller = it.userId,
-                    characterId = id,
-                    name = name,
-                    description = description,
-                    qualifiedModelName = model,
-                    prompt = prompt,
-                    greeting = greeting
-                ).transformServiceFuncResult()
-            }
+            chatCharacterService.saveOrUpdateCharacter(
+                caller = authPrincipal.userId,
+                characterId = id,
+                name = name,
+                description = description,
+                qualifiedModelName = model,
+                prompt = prompt,
+                greeting = greeting
+            ).transformServiceFuncResult()
+        }
+    }
+
+    @PostMapping("/delete")
+    fun deleteChatCharacter(authPrincipal: AuthPrincipal, @RequestParam("id") id: Long): Result<*> {
+        return catchException {
+            chatCharacterService.deleteChatCharacter(authPrincipal.userId, id, false).transformServiceFuncResult()
         }
     }
 
@@ -64,7 +69,7 @@ class ChatCharacterController(
                 if (character.authorUid == authPrincipal.userId) {
                     Result.success("", character)
                 } else {
-                    Result.notResourceOwner()
+                    Result.success("", character.toPublicVO())
                 }
             } else {
                 Result.badRequest("Character $characterId not found")

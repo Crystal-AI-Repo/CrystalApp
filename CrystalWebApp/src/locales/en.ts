@@ -36,6 +36,15 @@ export default {
             tab: {
                 myChats: "My Chats",
                 myCharacters: "My Characters"
+            },
+            myChats: {
+
+            },
+            myCharacters: {
+                text: {
+                    deleteMyChatCharacter: "Do you want to delete character {name}? If someone has added to contact, the character will be unavailable.",
+                    chatCharacterContactAdded: "{name} has been added to your contact list"
+                }
             }
         },
         newCharacter: {

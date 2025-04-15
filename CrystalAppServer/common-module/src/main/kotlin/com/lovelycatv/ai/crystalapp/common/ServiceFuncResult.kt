@@ -15,26 +15,32 @@ data class ServiceFuncResult<T>(
 
         fun success(message: String) = ServiceFuncResult(true, message, null)
 
-        fun failed(message: String) = ServiceFuncResult(false, message, null)
+        fun failed(message: String): ServiceFuncResult<*> = ServiceFuncResult(false, message, null)
+
+        fun <T> failedWithData(message: String) = ServiceFuncResult<T?>(false, message, null)
 
         fun notResourceOwner() = failed("You are not the owner of this resource")
     }
 }
 
 fun <T> ServiceFuncResult<T>.transformServiceFuncResult(): Result<*> {
-    return this.transformServiceFuncResult<T, Nothing>()
-}
-
-fun <T, R> ServiceFuncResult<T>.transformServiceFuncResult(dataProcessor: ((T) -> R)? = null): Result<*> {
     return if (this.success) {
         Result.success(
             message = this.message,
-            data = if (dataProcessor != null)
-                dataProcessor.invoke(this.data)
-            else
-                this.data
+            data = this.data
         )
     } else {
         Result.badRequest(this.message)
+    }
+}
+
+fun <T, R> ServiceFuncResult<T>.transformServiceFuncResult(dataProcessor: (T) -> R): Result<R?> {
+    return if (this.success) {
+        Result.success(
+            message = this.message,
+            data = dataProcessor.invoke(this.data)
+        )
+    } else {
+        Result.badRequest(this.message, null)
     }
 }

@@ -36,6 +36,15 @@ export default {
             tab: {
                 myChats: "我的聊天",
                 myCharacters: "我创建的角色"
+            },
+            myChats: {
+
+            },
+            myCharacters: {
+                text: {
+                    deleteMyChatCharacter: "是否要删除角色 {name}? 如果其他用户已经添加到聊天列表, 此角色将不再可用",
+                    chatCharacterContactAdded: "{name} 已添加到聊天列表"
+                }
             }
         },
         newCharacter: {

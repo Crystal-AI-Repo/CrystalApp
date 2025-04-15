@@ -1,8 +1,8 @@
 <script setup lang="ts">
 
 import {reactive, ref} from "vue";
-import type {Model} from "@/net/api/model.ts";
-import {deleteModel, getAllModels, saveModel} from "@/net/api/model.ts";
+import type {Model} from "@/net/api/model-controller.ts";
+import {deleteModel, getAllModels, saveModel} from "@/net/api/model-controller.ts";
 import {useI18n} from "vue-i18n";
 import {Delete, Edit} from "@element-plus/icons-vue";
 import type {FormInstance, FormRules} from "element-plus";

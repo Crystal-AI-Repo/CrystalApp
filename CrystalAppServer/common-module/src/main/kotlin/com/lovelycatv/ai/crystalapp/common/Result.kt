@@ -15,6 +15,10 @@ data class Result<T> @JsonCreator constructor(
     @JsonIgnore
     fun isSuccessful() = this.code == 200
 
+    fun <R> transformData(transformer: (T?) -> R): Result<R> {
+        return Result(this.code, this.message, transformer.invoke(this.data))
+    }
+
     companion object {
         const val RESPONSE_CODE_SUCCESS = 200
         const val RESPONSE_CODE_BAD_REQUEST = 400
