@@ -19,8 +19,18 @@ data class ServiceFuncResult<T>(
 
         fun <T> failedWithData(message: String) = ServiceFuncResult<T?>(false, message, null)
 
+        fun <T> failedWithData(message: String, data: T) = ServiceFuncResult<T>(false, message, data)
+
         fun notResourceOwner() = failed("You are not the owner of this resource")
     }
+}
+
+fun <T, R> ServiceFuncResult<T>.transform(fx: (T) -> R): ServiceFuncResult<R> {
+    return ServiceFuncResult(
+        success = this.success,
+        message = this.message,
+        data = fx.invoke(this.data)
+    )
 }
 
 fun <T> ServiceFuncResult<T>.transformServiceFuncResult(): Result<*> {

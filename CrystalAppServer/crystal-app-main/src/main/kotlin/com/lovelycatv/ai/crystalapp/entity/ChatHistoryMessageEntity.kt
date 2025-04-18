@@ -3,9 +3,9 @@ package com.lovelycatv.ai.crystalapp.entity
 import com.baomidou.mybatisplus.annotation.TableField
 import com.baomidou.mybatisplus.annotation.TableId
 import com.baomidou.mybatisplus.annotation.TableName
+import com.lovelycatv.ai.crystalapp.data.ChatHistoryMessage
 import com.lovelycatv.ai.crystalapp.enums.ChatMemberType
 import com.lovelycatv.ai.crystalapp.enums.ChatMessageType
-import com.lovelycatv.ai.crystalapp.enums.ChatTarget
 
 /**
  * @author lovelycat
@@ -16,20 +16,44 @@ import com.lovelycatv.ai.crystalapp.enums.ChatTarget
 data class ChatHistoryMessageEntity(
     @TableId
     @TableField("id")
-    val id: Long,
+    var id: Long,
     @TableField("sender_type")
-    val senderType: Int,
+    var senderType: Int,
     @TableField("sender")
-    val sender: Long,
+    var sender: Long,
     @TableField("message_type")
-    val messageType: Int,
+    var messageType: Int,
     @TableField("message")
-    val message: String,
+    var message: String,
     @TableField("created_time")
-    val createdTime: Long,
+    var createdTime: Long,
     @TableField("revoked")
-    val revoked: Boolean
-) {
+    var revoked: Boolean
+) : ChatHistoryMessage<ChatHistoryMessageEntity> {
+    @TableField(exist = false)
+    private val _children: MutableList<ChatHistoryMessageEntity> = mutableListOf()
+    @TableField(exist = false)
+    override val children: List<ChatHistoryMessageEntity> = this._children
+
+    /**
+     * Get the sub-type instance of [ChatHistoryMessage]
+     *
+     * @return Real instance of [ChatHistoryMessage]
+     */
+    override fun getMessageEntity(): ChatHistoryMessageEntity {
+        return this
+    }
+
+    override fun addChildNode(child: ChatHistoryMessageEntity) {
+        this._children.add(child)
+    }
+
+    override fun addChildNodes(children: Collection<ChatHistoryMessageEntity>) {
+        this._children.addAll(children)
+    }
+
+    override fun isLeafNode() = this.children.isEmpty()
+
     fun getSenderTypeEnum() = ChatMemberType.getByTypeId(this.senderType)
 
     fun getMessageTypeEnum() = ChatMessageType.getByTypeId(this.messageType)

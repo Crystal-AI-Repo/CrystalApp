@@ -6,6 +6,7 @@ import com.lovelycatv.ai.crystalapp.data.AbstractChatMessage
 import com.lovelycatv.ai.crystalapp.entity.ChatHistoryMessageEntity
 import com.lovelycatv.ai.crystalapp.enums.ChatMemberType
 import com.lovelycatv.ai.crystalapp.enums.ChatMessageType
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * @author lovelycat
@@ -14,12 +15,23 @@ import com.lovelycatv.ai.crystalapp.enums.ChatMessageType
  */
 interface ChatHistoryMessageService : IService<ChatHistoryMessageEntity?> {
     /**
-     * Add a header node as the start of a new chat message tree
+     * Add a header node as the start of a new chat message tree.
+     * At the same time, if the param [message] is not null,
+     * a child node will be created and associated with the header node.
+     * If the param [message] is null, only 1 header node will be created.
      *
      * @param senderType Type of whom sent this message, [ChatMessageType]
      * @param senderId   SenderId, could be userId / characterId ...
      * @param message    [AbstractChatMessage]
-     * @return Id of this new node
+     * @return Id of this header node
      */
-    fun createMessageTreeHeader(senderType: ChatMemberType, senderId: Long, message: AbstractChatMessage): ServiceFuncResult<Long?>
+    @Transactional
+    fun createMessageTreeHeader(senderType: ChatMemberType, senderId: Long, message: AbstractChatMessage?): ServiceFuncResult<Long?>
+
+    fun getFullMessageHistoryTree(headerId: Long): ServiceFuncResult<ChatHistoryMessageEntity?>
+
+    @Transactional
+    fun addNewMessage(parentId: Long, senderType: ChatMemberType, senderId: Long, message: AbstractChatMessage): ServiceFuncResult<Long?>
+
+    fun revokeMessage(messageId: Long): ServiceFuncResult<*>
 }

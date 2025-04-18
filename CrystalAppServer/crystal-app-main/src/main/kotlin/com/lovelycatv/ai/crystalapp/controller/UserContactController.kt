@@ -6,6 +6,7 @@ import com.lovelycatv.ai.crystalapp.common.transformRecords
 import com.lovelycatv.ai.crystalapp.common.transformServiceFuncResult
 import com.lovelycatv.ai.crystalapp.common.utils.catchException
 import com.lovelycatv.ai.crystalapp.common.utils.listByIds
+import com.lovelycatv.ai.crystalapp.data.BranchPath
 import com.lovelycatv.ai.crystalapp.entity.ChatCharacterEntity
 import com.lovelycatv.ai.crystalapp.enums.ChatTarget
 import com.lovelycatv.ai.crystalapp.service.ChatCharacterService
@@ -47,7 +48,9 @@ class UserContactController(
                             it.getContactTypeEnum() == ChatTarget.CHAT_ROLE
                         }.associateBy { it.chatTargetId }
 
-                        val chatCharacterEntities = chatCharacterService.listByIds(
+                        val chatCharacterEntities = if (chatCharacters.isEmpty())
+                            emptyList()
+                        else chatCharacterService.listByIds(
                             "id",
                             { it.id!! },
                             chatCharacters.values.map { it.chatTargetId }.toTypedArray()
@@ -75,6 +78,34 @@ class UserContactController(
     fun userAddCharacterChat(authPrincipal: AuthPrincipal, @RequestParam("characterId") characterId: Long): Result<*> {
         return catchException {
             userContactService.addCharacterChat(authPrincipal.userId, characterId).transformServiceFuncResult()
+        }
+    }
+
+    @PostMapping("/sendMessage")
+    fun sendMessageToContact(
+        authPrincipal: AuthPrincipal,
+        @RequestParam("contactId")
+        contactId: Long,
+        @RequestParam("message")
+        message: String,
+        @RequestParam("branchPath")
+        branchPath: String
+    ): Result<*> {
+        return catchException {
+            userContactService.sendMessage(authPrincipal.userId, contactId, message, BranchPath(branchPath, ",")).transformServiceFuncResult()
+        }
+    }
+
+    @PostMapping("/revokeMessage")
+    fun revokeMessage(
+        authPrincipal: AuthPrincipal,
+        @RequestParam("contactId")
+        contactId: Long,
+        @RequestParam("messageId")
+        messageId: Long
+    ): Result<*> {
+        return catchException {
+            userContactService.revokeMessage(authPrincipal.userId, contactId, messageId).transformServiceFuncResult()
         }
     }
 }

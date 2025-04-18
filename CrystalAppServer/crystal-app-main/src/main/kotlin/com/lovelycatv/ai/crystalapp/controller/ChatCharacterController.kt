@@ -85,7 +85,7 @@ class ChatCharacterController(
     ): Result<*> {
         return catchException {
             withPrincipal(principal) {
-                chatCharacterService.getUserCreatedCharacters(it.userId, page, 10).transformServiceFuncResult()
+                chatCharacterService.getUserCreatedCharacters(it.userId, page,  10, false).transformServiceFuncResult()
             }
         }
     }

@@ -1,6 +1,8 @@
 package com.lovelycatv.ai.crystalapp.service
 
 import com.baomidou.mybatisplus.extension.service.IService
+import com.lovelycatv.ai.crystalapp.common.ServiceFuncResult
+import com.lovelycatv.ai.crystalapp.entity.ChatHistoryMessageEntity
 import com.lovelycatv.ai.crystalapp.entity.ChatHistoryMessageRelationEntity
 
 /**
@@ -8,4 +10,25 @@ import com.lovelycatv.ai.crystalapp.entity.ChatHistoryMessageRelationEntity
  * @since 2025-04-14 20:38
  * @version 1.0
  */
-interface ChatHistoryMessageRelationService : IService<ChatHistoryMessageRelationEntity?>
+interface ChatHistoryMessageRelationService : IService<ChatHistoryMessageRelationEntity?> {
+    fun getChildrenNodes(parentId: Long): List<ChatHistoryMessageRelationEntity>
+
+    fun addChildNode(parentId: Long, childId: Long): ServiceFuncResult<*>
+
+    /**
+     * Get the parent node relation
+     *
+     * @param currentId Current nodeId
+     * @return If the given [currentId] is root, the return value will be null
+     */
+    fun getParentNode(currentId: Long): ChatHistoryMessageRelationEntity?
+
+    /**
+     * Search for the root node upwards based on the given child node: [leafNodeId]
+     *
+     * @param leafNodeId From this node
+     * @param includeLeaf If true, the first element of result will be the given node
+     * @return All nodes in the path, the last element is root
+     */
+    fun searchUpwardsForRoot(leafNodeId: Long, includeLeaf: Boolean): ServiceFuncResult<List<ChatHistoryMessageRelationEntity>>
+}
