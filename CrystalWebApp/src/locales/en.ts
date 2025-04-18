@@ -91,5 +91,13 @@ export default {
                 modelDeleted: "ModelController {modelName} deleted successfully"
             }
         }
+    },
+    chat: {
+        button: {
+            exploreWorkshop: "Explore Workshop"
+        },
+        text: {
+            emptySession: "Explore. Connect. Begin."
+        }
     }
 }

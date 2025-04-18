@@ -126,6 +126,7 @@ function logout() {
   z-index: 999;
   background: rgba(255, 255, 255, .75);
   backdrop-filter: blur(1rem);
+  box-shadow: 0 0 .25rem 0 rgba(0, 0, 0, .15);
 }
 
 .header {

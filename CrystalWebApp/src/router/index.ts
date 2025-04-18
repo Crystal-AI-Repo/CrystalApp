@@ -14,6 +14,9 @@ import NewRoleView from "@/views/manager/CharacterEditView.vue";
 import ModelManagerView from "@/views/manager/ModelManagerView.vue";
 import ProfileMyChatsView from "@/views/manager/profile/ProfileMyChatsView.vue";
 import ProfileMyCharactersView from "@/views/manager/profile/ProfileMyCharactersView.vue";
+import ChatContainerView from "@/views/chat/ChatContainerView.vue";
+import ChatView from "@/views/chat/ChatView.vue";
+import ChatEmptyView from "@/views/chat/ChatEmptyView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -50,6 +53,23 @@ const router = createRouter({
       path: "/rank",
       name: "rank",
       component: MainRankView
+    },
+    {
+      path: '/chat',
+      name: 'chat',
+      component: ChatContainerView,
+      children: [
+        {
+          path: '',
+          name: 'chat-empty',
+          component: ChatEmptyView
+        },
+        {
+          path: ':contactId',
+          name: 'chat-contact',
+          component: ChatView
+        }
+      ]
     },
     {
       path: "/manager",

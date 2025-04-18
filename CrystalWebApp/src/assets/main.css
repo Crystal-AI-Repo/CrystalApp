@@ -30,6 +30,10 @@
     --color-error-container: #ffdad6;
     --color-on-error-container: #93000a;
 
+    --font-size-tiny-s: .4rem;
+    --font-size-tiny: 0.5rem;
+    --font-size-tiny-p: .6rem;
+
     --font-size-small-s: .75rem;
     --font-size-small: 0.85rem;
     --font-size-small-p: .95rem;

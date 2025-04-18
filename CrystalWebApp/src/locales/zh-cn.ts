@@ -90,5 +90,13 @@ export default {
                 deleteModel: "是否要删除模型 {modelName} ({ modelQualifiedName }) ?"
             }
         }
+    },
+    chat: {
+        button: {
+            exploreWorkshop: "探索创意工坊"
+        },
+        text: {
+            emptySession: "探索从这里开始"
+        }
     }
 }
