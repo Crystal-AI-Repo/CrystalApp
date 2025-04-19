@@ -7,6 +7,7 @@ import com.lovelycatv.ai.crystalapp.data.BranchPath
 import com.lovelycatv.ai.crystalapp.entity.UserContactEntity
 import com.lovelycatv.ai.crystalapp.enums.ChatMemberType
 import org.springframework.transaction.annotation.Transactional
+import reactor.core.publisher.Flux
 
 /**
  * @author lovelycat
@@ -30,7 +31,7 @@ interface UserContactService : IService<UserContactEntity?> {
     fun updateContactDeletionMark(contactId: Long, deleted: Boolean): ServiceFuncResult<*>
 
     @Transactional
-    fun sendMessage(senderUserId: Long, contactId: Long, message: String, branchPath: BranchPath): ServiceFuncResult<*>
+    fun sendMessage(senderUserId: Long, contactId: Long, message: String, branchPath: BranchPath): ServiceFuncResult<Flux<*>?>
 
     fun revokeMessage(userId: Long, contactId: Long, messageId: Long): ServiceFuncResult<*>
 

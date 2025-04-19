@@ -58,6 +58,8 @@ data class ChatHistoryMessageEntity(
     override fun isLeafNode() = this.children.isEmpty()
 
     fun getSenderTypeEnum() = ChatMemberType.getByTypeId(this.senderType)
+        ?: throw IllegalStateException("Unsupported sender type: ${this.senderType}")
 
     fun getMessageTypeEnum() = ChatMessageType.getByTypeId(this.messageType)
+        ?: throw IllegalStateException("Unsupported message type: ${this.messageType}")
 }

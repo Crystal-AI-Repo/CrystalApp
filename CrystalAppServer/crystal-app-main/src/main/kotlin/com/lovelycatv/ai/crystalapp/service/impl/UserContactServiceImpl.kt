@@ -3,6 +3,9 @@ package com.lovelycatv.ai.crystalapp.service.impl
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl
 import com.lovelycatv.ai.crystalapp.common.PagedData
 import com.lovelycatv.ai.crystalapp.common.ServiceFuncResult
+import com.lovelycatv.ai.crystalapp.common.autoFitNull
+import com.lovelycatv.ai.crystalapp.common.data.message.AbstractPromptMessage
+import com.lovelycatv.ai.crystalapp.common.data.message.TextPromptMessage
 import com.lovelycatv.ai.crystalapp.common.utils.getOneByColumn
 import com.lovelycatv.ai.crystalapp.common.utils.getPagedData
 import com.lovelycatv.ai.crystalapp.common.utils.logger
@@ -11,14 +14,13 @@ import com.lovelycatv.ai.crystalapp.data.BranchPath
 import com.lovelycatv.ai.crystalapp.data.TextChatMessage
 import com.lovelycatv.ai.crystalapp.entity.UserContactEntity
 import com.lovelycatv.ai.crystalapp.enums.ChatMemberType
+import com.lovelycatv.ai.crystalapp.enums.ChatMessageType
 import com.lovelycatv.ai.crystalapp.enums.ChatTarget
 import com.lovelycatv.ai.crystalapp.mapper.UserContactMapper
-import com.lovelycatv.ai.crystalapp.service.ChatCharacterService
-import com.lovelycatv.ai.crystalapp.service.ChatHistoryMessageRelationService
-import com.lovelycatv.ai.crystalapp.service.ChatHistoryMessageService
-import com.lovelycatv.ai.crystalapp.service.UserContactService
+import com.lovelycatv.ai.crystalapp.service.*
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import reactor.core.publisher.Flux
 
 /**
  * @author lovelycat
@@ -29,9 +31,11 @@ import org.springframework.transaction.annotation.Transactional
 class UserContactServiceImpl(
     private val chatCharacterService: ChatCharacterService,
     private val chatHistoryMessageService: ChatHistoryMessageService,
-    private val chatHistoryMessageRelationService: ChatHistoryMessageRelationService
+    private val chatHistoryMessageRelationService: ChatHistoryMessageRelationService,
+    private val openApiChatService: OpenApiChatService,
+    private val modelService: ModelService
 ) : UserContactService, ServiceImpl<UserContactMapper, UserContactEntity?>() {
-    val logger = logger()
+    private val logger = logger()
 
     override fun getUserContactList(uid: Long, page: Long, size: Long, includingDeleted: Boolean): ServiceFuncResult<PagedData<UserContactEntity>> {
         return ServiceFuncResult.success(
@@ -121,8 +125,8 @@ class UserContactServiceImpl(
     }
 
     @Transactional
-    override fun sendMessage(senderUserId: Long, contactId: Long, message: String, branchPath: BranchPath): ServiceFuncResult<*> {
-        val targetContact = this.getByContactIdAndUid(contactId, senderUserId) ?: return ServiceFuncResult.failed("Contact $contactId not found")
+    override fun sendMessage(senderUserId: Long, contactId: Long, message: String, branchPath: BranchPath): ServiceFuncResult<Flux<*>?> {
+        val targetContact = this.getByContactIdAndUid(contactId, senderUserId) ?: return ServiceFuncResult.failedWithData("Contact $contactId not found")
         val chatHistoryStartFrom = if (targetContact.chatHistoryStart <= 0) {
             // Chat history not found, create a header
             val headerCreateResult: ServiceFuncResult<Long?> = when (targetContact.getContactTypeEnum()) {
@@ -149,7 +153,7 @@ class UserContactServiceImpl(
                 transactionRollback()
 
                 // Return with failure message
-                return headerCreateResult
+                return headerCreateResult.autoFitNull()
             } else {
                 headerCreateResult.data!!
             }
@@ -159,20 +163,59 @@ class UserContactServiceImpl(
 
         // Find the target leaf node
         val tree = with(chatHistoryMessageService.getFullMessageHistoryTree(chatHistoryStartFrom)) {
-            if (this.success) this.data!! else return this
+            if (this.success) this.data!! else return this.autoFitNull()
         }
 
-        val leafNode = tree.getMessageChainByBranchPath(branchPath).last()
+        val historyMessages = tree.getMessageChainByBranchPath(branchPath).filter { !it.revoked }
+        val leafNode = historyMessages.last()
 
         val result = chatHistoryMessageService.addNewMessage(leafNode.id, ChatMemberType.USER, senderUserId, TextChatMessage(message))
 
         return if (result.success) {
-            ServiceFuncResult.success("Success")
+            val userMessageEntity = result.data!!
+
+            // Message has been saved into database, call chat completion
+            when (targetContact.getContactTypeEnum()) {
+                ChatTarget.CHAT_ROLE -> {
+                    val character = chatCharacterService.getById(targetContact.chatTargetId)
+                    if (character != null) {
+                        val model = modelService.getById(character.modelId)
+                        if (model != null) {
+                            val characterPrompts = listOf(TextPromptMessage(AbstractPromptMessage.Role.SYSTEM, character.prompt))
+                            val combinedChatHistory = (historyMessages + listOf(userMessageEntity)).mapNotNull {
+                                val role = when (it.getSenderTypeEnum()) {
+                                    ChatMemberType.CHAT_ROLE -> AbstractPromptMessage.Role.ASSISTANT
+                                    ChatMemberType.USER -> AbstractPromptMessage.Role.USER
+                                }
+
+                                when (it.getMessageTypeEnum()) {
+                                    ChatMessageType.TEXT -> TextPromptMessage(role, it.message)
+                                    else -> null
+                                }
+                            }
+
+                            ServiceFuncResult.success("", openApiChatService.streamChatCompletion(
+                                modelName = model.qualifiedName,
+                                prompts = characterPrompts + combinedChatHistory,
+                                onCompleted = { output, _, _ ->
+                                    chatHistoryMessageService.addNewMessage(userMessageEntity.id, ChatMemberType.CHAT_ROLE, character.id!!, TextChatMessage(output))
+                                }
+                            ))
+                        } else {
+                            ServiceFuncResult.failedWithData("Model ${character.modelId} not found")
+                        }
+                    } else {
+                        ServiceFuncResult.failedWithData("Character ${targetContact.chatTargetId} not found")
+                    }
+                }
+                // ChatTarget.CHAT_GROUP -> {}
+                else -> ServiceFuncResult.failedWithData("Unsupported contact type: ${targetContact.contactType}")
+            }
         } else {
             // Rollback
             transactionRollback()
 
-            result
+            result.autoFitNull()
         }
     }
 

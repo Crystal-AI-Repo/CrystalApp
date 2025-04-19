@@ -33,6 +33,14 @@ fun <T, R> ServiceFuncResult<T>.transform(fx: (T) -> R): ServiceFuncResult<R> {
     )
 }
 
+fun <T, R> ServiceFuncResult<T>.autoFitNull(): ServiceFuncResult<R?> {
+    return ServiceFuncResult(
+        success = this.success,
+        message = this.message,
+        data = null
+    )
+}
+
 fun <T> ServiceFuncResult<T>.transformServiceFuncResult(): Result<*> {
     return if (this.success) {
         Result.success(

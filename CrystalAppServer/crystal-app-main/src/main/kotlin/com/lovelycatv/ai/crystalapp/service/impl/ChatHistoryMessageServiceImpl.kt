@@ -103,25 +103,25 @@ class ChatHistoryMessageServiceImpl(
         senderType: ChatMemberType,
         senderId: Long,
         message: AbstractChatMessage
-    ): ServiceFuncResult<Long?> {
+    ): ServiceFuncResult<ChatHistoryMessageEntity?> {
         val messageId = chatHistoryMessageIdGenerator.nextId(0)
 
-        val resultOfSaveMessage = this.save(
-            ChatHistoryMessageEntity(
-                id = messageId,
-                senderType = senderType.typeId,
-                sender = senderId,
-                messageType = message.messageType.typeId,
-                message = message.originalMessage,
-                createdTime = System.currentTimeMillis(),
-                revoked = false
-            )
+        val entity = ChatHistoryMessageEntity(
+            id = messageId,
+            senderType = senderType.typeId,
+            sender = senderId,
+            messageType = message.messageType.typeId,
+            message = message.originalMessage,
+            createdTime = System.currentTimeMillis(),
+            revoked = false
         )
+
+        val resultOfSaveMessage = this.save(entity)
 
         val resultOfAddRelation = chatHistoryMessageRelationService.addChildNode(parentId, messageId)
 
         return if (resultOfSaveMessage && resultOfAddRelation.success) {
-            ServiceFuncResult.success("Created", messageId)
+            ServiceFuncResult.success("Created", entity)
         } else {
             // Rollback Transaction
             transactionRollback()

@@ -31,7 +31,7 @@ interface ChatHistoryMessageService : IService<ChatHistoryMessageEntity?> {
     fun getFullMessageHistoryTree(headerId: Long): ServiceFuncResult<ChatHistoryMessageEntity?>
 
     @Transactional
-    fun addNewMessage(parentId: Long, senderType: ChatMemberType, senderId: Long, message: AbstractChatMessage): ServiceFuncResult<Long?>
+    fun addNewMessage(parentId: Long, senderType: ChatMemberType, senderId: Long, message: AbstractChatMessage): ServiceFuncResult<ChatHistoryMessageEntity?>
 
     fun revokeMessage(messageId: Long): ServiceFuncResult<*>
 

@@ -7,7 +7,7 @@ package com.lovelycatv.ai.crystalapp.enums
  */
 enum class ChatMemberType(val typeId: Int) {
     CHAT_ROLE(0),
-    USER(0);
+    USER(1);
 
     companion object {
         fun getByTypeId(typeId: Int): ChatMemberType? = ChatMemberType.entries.find { it.typeId == typeId }

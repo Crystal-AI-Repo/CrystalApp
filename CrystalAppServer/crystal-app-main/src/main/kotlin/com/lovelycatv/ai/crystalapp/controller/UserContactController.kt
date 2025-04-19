@@ -1,18 +1,18 @@
 package com.lovelycatv.ai.crystalapp.controller
 
-import com.lovelycatv.ai.crystalapp.common.Result
-import com.lovelycatv.ai.crystalapp.common.mapRecords
-import com.lovelycatv.ai.crystalapp.common.transformRecords
-import com.lovelycatv.ai.crystalapp.common.transformServiceFuncResult
+import com.lovelycatv.ai.crystalapp.common.*
 import com.lovelycatv.ai.crystalapp.common.utils.catchException
 import com.lovelycatv.ai.crystalapp.common.utils.listByIds
+import com.lovelycatv.ai.crystalapp.common.utils.toJSONString
 import com.lovelycatv.ai.crystalapp.data.BranchPath
 import com.lovelycatv.ai.crystalapp.entity.ChatCharacterEntity
 import com.lovelycatv.ai.crystalapp.enums.ChatTarget
 import com.lovelycatv.ai.crystalapp.service.ChatCharacterService
+import com.lovelycatv.ai.crystalapp.service.ChatHistoryMessageRelationService
 import com.lovelycatv.ai.crystalapp.service.UserContactService
 import com.lovelycatv.ai.crystalapp.vo.UserContactVO
 import com.lovelycatv.auth.utils.AuthPrincipal
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -28,7 +28,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/contact")
 class UserContactController(
     private val userContactService: UserContactService,
-    private val chatCharacterService: ChatCharacterService
+    private val chatCharacterService: ChatCharacterService,
+    private val chatHistoryMessageRelationService: ChatHistoryMessageRelationService
 ) {
     @GetMapping("/list")
     fun getUserContactList(authPrincipal: AuthPrincipal, @RequestParam("page") page: Long): Result<*> {
@@ -81,8 +82,8 @@ class UserContactController(
         }
     }
 
-    @PostMapping("/sendMessage")
-    fun sendMessageToContact(
+    @PostMapping("/sendMessageWithBranch", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
+    fun sendMessageToContactWithBranch(
         authPrincipal: AuthPrincipal,
         @RequestParam("contactId")
         contactId: Long,
@@ -90,9 +91,36 @@ class UserContactController(
         message: String,
         @RequestParam("branchPath")
         branchPath: String
-    ): Result<*> {
-        return catchException {
-            userContactService.sendMessage(authPrincipal.userId, contactId, message, BranchPath(branchPath, ",")).transformServiceFuncResult()
+    ): Any {
+        val result = userContactService.sendMessage(authPrincipal.userId, contactId, message, BranchPath(branchPath, ","))
+        return if (result.success) {
+            result.data!!
+        } else {
+            result.transformServiceFuncResult().toJSONString()
+        }
+    }
+
+    @PostMapping("/sendMessage", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
+    fun sendMessageToContact(
+        authPrincipal: AuthPrincipal,
+        @RequestParam("contactId")
+        contactId: Long,
+        @RequestParam("message")
+        message: String,
+        @RequestParam("messageId")
+        messageId: Long
+    ): Any {
+        // Find path to this message
+        val searchResult = chatHistoryMessageRelationService.searchPathToNode(messageId)
+        return if (searchResult.success) {
+            val result = userContactService.sendMessage(authPrincipal.userId, contactId, message, searchResult.data!!)
+            if (result.success) {
+                result.data!!
+            } else {
+                result.transformServiceFuncResult().toJSONString()
+            }
+        } else {
+            searchResult.transformServiceFuncResult().toJSONString()
         }
     }
 

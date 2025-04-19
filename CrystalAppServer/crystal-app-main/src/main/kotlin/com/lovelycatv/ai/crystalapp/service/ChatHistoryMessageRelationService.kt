@@ -2,6 +2,7 @@ package com.lovelycatv.ai.crystalapp.service
 
 import com.baomidou.mybatisplus.extension.service.IService
 import com.lovelycatv.ai.crystalapp.common.ServiceFuncResult
+import com.lovelycatv.ai.crystalapp.data.BranchPath
 import com.lovelycatv.ai.crystalapp.entity.ChatHistoryMessageEntity
 import com.lovelycatv.ai.crystalapp.entity.ChatHistoryMessageRelationEntity
 
@@ -31,4 +32,6 @@ interface ChatHistoryMessageRelationService : IService<ChatHistoryMessageRelatio
      * @return All nodes in the path, the last element is root.
      */
     fun searchUpwardsForRoot(leafNodeId: Long, depth: Long?): ServiceFuncResult<List<ChatHistoryMessageRelationEntity>>
+
+    fun searchPathToNode(targetId: Long): ServiceFuncResult<BranchPath?>
 }

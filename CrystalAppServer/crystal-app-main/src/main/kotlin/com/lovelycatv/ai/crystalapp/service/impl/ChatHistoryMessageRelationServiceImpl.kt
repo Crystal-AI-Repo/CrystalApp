@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl
 import com.lovelycatv.ai.crystalapp.common.ServiceFuncResult
 import com.lovelycatv.ai.crystalapp.common.utils.getOneByColumn
+import com.lovelycatv.ai.crystalapp.data.BranchPath
 import com.lovelycatv.ai.crystalapp.entity.ChatHistoryMessageEntity
 import com.lovelycatv.ai.crystalapp.entity.ChatHistoryMessageRelationEntity
 import com.lovelycatv.ai.crystalapp.mapper.ChatHistoryMessageRelationMapper
@@ -65,5 +66,16 @@ class ChatHistoryMessageRelationServiceImpl : ChatHistoryMessageRelationService,
         }
 
         return ServiceFuncResult.success("", result)
+    }
+
+    override fun searchPathToNode(targetId: Long): ServiceFuncResult<BranchPath?> {
+        // Find path to this message
+        val searchResult = this.searchUpwardsForRoot(targetId, null)
+        return if (searchResult.success) {
+            val path = searchResult.data.map { it.orderNo }.reversed().joinToString(separator = ",")
+            ServiceFuncResult.success("", BranchPath(path))
+        } else {
+            ServiceFuncResult.failedWithData("Could not find the path to this message")
+        }
     }
 }
