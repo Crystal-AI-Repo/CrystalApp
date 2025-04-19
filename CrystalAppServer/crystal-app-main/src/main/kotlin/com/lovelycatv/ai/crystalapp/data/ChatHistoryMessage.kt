@@ -21,9 +21,17 @@ interface ChatHistoryMessage<T: ChatHistoryMessage<T>> {
 
     fun isLeafNode() = this.children.isEmpty()
 
-    fun getMessageChainByBranchPath(path: BranchPath): MutableList<T> {
+    fun getMessageByBranchPath(path: BranchPath): T {
+        return this.getMessageChainByBranchPath(path, true).last()
+    }
+
+    fun getMessageChainByBranchPath(path: BranchPath, leafOnly: Boolean = false): MutableList<T> {
         var currentHeader = this.getMessageEntity()
-        val chain = mutableListOf(currentHeader)
+        val chain = mutableListOf<T>()
+
+        if (!leafOnly) {
+            chain.add(currentHeader)
+        }
 
         /**
          * Only one element
@@ -35,9 +43,12 @@ interface ChatHistoryMessage<T: ChatHistoryMessage<T>> {
         var counter = 0
 
         while (currentHeader.children.isNotEmpty() && counter < path.branchIndexes.size) {
-            val next = currentHeader.children[path.branchIndexes[counter++]].getMessageEntity()
-            chain.add(next)
+            val next = currentHeader.children[path.branchIndexes[counter]]
+            if (!leafOnly || counter == path.branchIndexes.size - 1) {
+                chain.add(next)
+            }
             currentHeader = next
+            counter++
         }
 
         return chain

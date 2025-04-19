@@ -177,21 +177,30 @@ class UserContactServiceImpl(
     }
 
     override fun revokeMessage(userId: Long, contactId: Long, messageId: Long): ServiceFuncResult<*> {
+        val validaRoot = this.validateMessageRoot(userId, contactId, messageId)
+        return if (validaRoot.success) {
+            val result = chatHistoryMessageService.revokeMessage(messageId)
+            if (result.success) {
+                ServiceFuncResult.success("Message revoked")
+            } else {
+                result
+            }
+        } else {
+            validaRoot
+        }
+    }
+
+    override fun validateMessageRoot(userId: Long, contactId: Long, messageId: Long): ServiceFuncResult<*> {
         val targetContact = this.getByContactIdAndUid(contactId, userId) ?: return ServiceFuncResult.failed("Contact $contactId not found")
-        val searchRootResult = chatHistoryMessageRelationService.searchUpwardsForRoot(messageId, true)
+        val searchRootResult = chatHistoryMessageRelationService.searchUpwardsForRoot(messageId, null)
 
         return if (searchRootResult.success) {
             val root = searchRootResult.data.last()
             // Validate whether the root node id is equals to the startId in targetContact
             if (targetContact.chatHistoryStart == root.currentId) {
-                val result = chatHistoryMessageService.revokeMessage(messageId)
-                if (result.success) {
-                    ServiceFuncResult.success("Message revoked")
-                } else {
-                    result
-                }
+                ServiceFuncResult.success("Success")
             } else {
-                logger.warn("User $userId is trying to revoke message: $messageId but given a wrong contact: ${targetContact.id}. " +
+                logger.warn("User $userId is trying to operate message: $messageId but given a wrong contact: ${targetContact.id}. " +
                     "The contact message history start from ${targetContact.chatHistoryStart} but the root of the given message is ${root.currentId}")
                 ServiceFuncResult.failed("Message history validation failed")
             }

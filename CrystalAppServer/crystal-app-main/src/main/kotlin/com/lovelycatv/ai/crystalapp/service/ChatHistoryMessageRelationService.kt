@@ -26,9 +26,9 @@ interface ChatHistoryMessageRelationService : IService<ChatHistoryMessageRelatio
     /**
      * Search for the root node upwards based on the given child node: [leafNodeId]
      *
-     * @param leafNodeId From this node
-     * @param includeLeaf If true, the first element of result will be the given node
-     * @return All nodes in the path, the last element is root
+     * @param leafNodeId From this node.
+     * @param depth If the given depth is not null, the root node may not be found.
+     * @return All nodes in the path, the last element is root.
      */
-    fun searchUpwardsForRoot(leafNodeId: Long, includeLeaf: Boolean): ServiceFuncResult<List<ChatHistoryMessageRelationEntity>>
+    fun searchUpwardsForRoot(leafNodeId: Long, depth: Long?): ServiceFuncResult<List<ChatHistoryMessageRelationEntity>>
 }

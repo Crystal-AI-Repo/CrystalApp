@@ -148,17 +148,40 @@ class ChatHistoryMessageServiceImpl(
         }
     }
 
+    override fun fetchHistoryMessages(messageId: Long, size: Long): ServiceFuncResult<List<ChatHistoryMessageEntity>> {
+        val result = chatHistoryMessageRelationService.searchUpwardsForRoot(messageId, size)
+        return if (result.success) {
+            val rawChain = result.data
+            if (rawChain.isEmpty()) {
+                // The given message is the only one in history
+                ServiceFuncResult.success("", emptyList())
+            } else {
+                ServiceFuncResult.success(
+                    message = "",
+                    data = this.listByIds(
+                        "id", { it.id }, rawChain.map { it.currentId }.toTypedArray()
+                    ).values.filterNotNull()
+                )
+            }
+        } else {
+            result.transform { listOf() }
+        }
+    }
+
     private fun recursiveFindChildrenNodes(parent: ChatHistoryMessageEntity) {
+        val childrenNodes = chatHistoryMessageRelationService.getChildrenNodes(parent.id)
+        if (childrenNodes.isEmpty()) {
+            return
+        }
+
         val children = this.listByIds(
             idColumnName = "id",
             entityId = { it.id },
-            characterIds = chatHistoryMessageRelationService.getChildrenNodes(parent.id).map { it.nextId }.toTypedArray()
+            characterIds = childrenNodes.map { it.nextId }.toTypedArray()
         ).values.filterNotNull()
 
         children.forEach {
-            if (!it.isLeafNode()) {
-                this.recursiveFindChildrenNodes(it)
-            }
+            this.recursiveFindChildrenNodes(it)
         }
 
         parent.addChildNodes(children)

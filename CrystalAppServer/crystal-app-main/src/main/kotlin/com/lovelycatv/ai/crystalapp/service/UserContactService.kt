@@ -6,7 +6,6 @@ import com.lovelycatv.ai.crystalapp.common.ServiceFuncResult
 import com.lovelycatv.ai.crystalapp.data.BranchPath
 import com.lovelycatv.ai.crystalapp.entity.UserContactEntity
 import com.lovelycatv.ai.crystalapp.enums.ChatMemberType
-import com.lovelycatv.ai.crystalapp.enums.ChatTarget
 import org.springframework.transaction.annotation.Transactional
 
 /**
@@ -34,4 +33,15 @@ interface UserContactService : IService<UserContactEntity?> {
     fun sendMessage(senderUserId: Long, contactId: Long, message: String, branchPath: BranchPath): ServiceFuncResult<*>
 
     fun revokeMessage(userId: Long, contactId: Long, messageId: Long): ServiceFuncResult<*>
+
+    fun validateMessageRoot(userId: Long, contactId: Long, messageId: Long): ServiceFuncResult<*>
+
+    /**
+     * Check if the target contact belongs to user
+     *
+     * @param userId UserId
+     * @param contactId ContactId
+     * @return If false, the return value will be null
+     */
+    fun validateContactOwner(userId: Long, contactId: Long): UserContactEntity? = this.getByContactIdAndUid(contactId, userId)
 }

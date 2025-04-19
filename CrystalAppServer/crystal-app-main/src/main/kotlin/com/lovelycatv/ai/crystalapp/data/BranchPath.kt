@@ -9,6 +9,8 @@ data class BranchPath(
     val path: String,
     val separator: String = ","
 ) {
+    constructor(list: List<Number>, separator: String = ",") : this(list.joinToString(separator = separator), separator)
+
     val branchIndexes = if (this.path.isBlank())
         listOf()
     else if (!path.contains(this.separator))

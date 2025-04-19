@@ -45,23 +45,19 @@ class ChatHistoryMessageRelationServiceImpl : ChatHistoryMessageRelationService,
     /**
      * Search for the root node upwards based on the given child node: [leafNodeId]
      *
-     * @param leafNodeId From this node
-     * @param includeLeaf If true, the first element of result will be the given node
-     * @return All nodes in the path, the last element is root
+     * @param leafNodeId From this node.
+     * @param depth If the given depth is not null, the root node may not be found.
+     * @return All nodes in the path, the last element is root.
      */
     override fun searchUpwardsForRoot(
         leafNodeId: Long,
-        includeLeaf: Boolean
+        depth: Long?
     ): ServiceFuncResult<List<ChatHistoryMessageRelationEntity>> {
         var currentNode: ChatHistoryMessageRelationEntity? = this.getParentNode(leafNodeId) ?: return ServiceFuncResult.failedWithData("Leaf $leafNodeId not found", emptyList())
 
-        val result = mutableListOf<ChatHistoryMessageRelationEntity>()
+        val result = mutableListOf(currentNode!!)
 
-        if (includeLeaf) {
-            result.add(currentNode!!)
-        }
-
-        while (currentNode != null) {
+        while (currentNode != null && (depth == null || result.size < depth)) {
             currentNode = this.getParentNode(currentNode.currentId)
             if (currentNode != null) {
                 result.add(currentNode)

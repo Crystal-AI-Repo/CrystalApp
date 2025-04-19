@@ -3,6 +3,7 @@ package com.lovelycatv.ai.crystalapp.entity
 import com.baomidou.mybatisplus.annotation.TableField
 import com.baomidou.mybatisplus.annotation.TableId
 import com.baomidou.mybatisplus.annotation.TableName
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.lovelycatv.ai.crystalapp.data.ChatHistoryMessage
 import com.lovelycatv.ai.crystalapp.enums.ChatMemberType
 import com.lovelycatv.ai.crystalapp.enums.ChatMessageType
@@ -32,6 +33,7 @@ data class ChatHistoryMessageEntity(
 ) : ChatHistoryMessage<ChatHistoryMessageEntity> {
     @TableField(exist = false)
     private val _children: MutableList<ChatHistoryMessageEntity> = mutableListOf()
+    @JsonIgnore
     @TableField(exist = false)
     override val children: List<ChatHistoryMessageEntity> = this._children
 
@@ -40,6 +42,7 @@ data class ChatHistoryMessageEntity(
      *
      * @return Real instance of [ChatHistoryMessage]
      */
+    @JsonIgnore
     override fun getMessageEntity(): ChatHistoryMessageEntity {
         return this
     }
