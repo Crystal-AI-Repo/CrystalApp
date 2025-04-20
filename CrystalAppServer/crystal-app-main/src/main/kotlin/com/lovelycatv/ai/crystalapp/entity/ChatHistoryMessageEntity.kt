@@ -37,6 +37,12 @@ data class ChatHistoryMessageEntity(
     @TableField(exist = false)
     override val children: List<ChatHistoryMessageEntity> = this._children
 
+    // Used in getting history messages
+    @TableField(exist = false)
+    var childrenSize: Int = 0
+
+
+
     /**
      * Get the sub-type instance of [ChatHistoryMessage]
      *
@@ -49,20 +55,26 @@ data class ChatHistoryMessageEntity(
 
     override fun addChildNode(child: ChatHistoryMessageEntity) {
         this._children.add(child)
+        this.childrenSize = this.children.size
     }
 
     override fun addChildNodes(children: Collection<ChatHistoryMessageEntity>) {
         this._children.addAll(children)
+        this.childrenSize = this.children.size
     }
 
+    @JsonIgnore
     override fun isLeafNode() = this.children.isEmpty()
 
+    @JsonIgnore
     fun getSenderTypeEnum() = ChatMemberType.getByTypeId(this.senderType)
         ?: throw IllegalStateException("Unsupported sender type: ${this.senderType}")
 
+    @JsonIgnore
     fun getMessageTypeEnum() = ChatMessageType.getByTypeId(this.messageType)
         ?: throw IllegalStateException("Unsupported message type: ${this.messageType}")
 
+    @JsonIgnore
     fun isAvailable() = !this.revoked
 
     companion object {

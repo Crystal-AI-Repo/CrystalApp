@@ -4,7 +4,6 @@ import com.lovelycatv.ai.crystalapp.common.Result
 import com.lovelycatv.ai.crystalapp.common.transform
 import com.lovelycatv.ai.crystalapp.common.transformServiceFuncResult
 import com.lovelycatv.ai.crystalapp.common.utils.catchException
-import com.lovelycatv.ai.crystalapp.data.BranchPath
 import com.lovelycatv.ai.crystalapp.entity.ChatHistoryMessageEntity
 import com.lovelycatv.ai.crystalapp.service.ChatHistoryMessageService
 import com.lovelycatv.ai.crystalapp.service.UserContactService
@@ -36,7 +35,7 @@ class ChatHistoryController(
         // Validate message root
         val validateResult = userContactService.validateMessageRoot(authPrincipal.userId, contactId, messageId)
         if (validateResult.success) {
-            chatHistoryMessageService.fetchHistoryMessages(messageId, 20).transform {
+            chatHistoryMessageService.fetchHistoryMessagesUpwards(messageId, 20).transform {
                 it.filter { it.isAvailable() }
             }
         } else {

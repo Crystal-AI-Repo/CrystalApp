@@ -35,5 +35,5 @@ interface ChatHistoryMessageService : IService<ChatHistoryMessageEntity?> {
 
     fun revokeMessage(messageId: Long): ServiceFuncResult<*>
 
-    fun fetchHistoryMessages(messageId: Long, size: Long): ServiceFuncResult<List<ChatHistoryMessageEntity>>
+    fun fetchHistoryMessagesUpwards(messageId: Long, size: Long): ServiceFuncResult<List<ChatHistoryMessageEntity>>
 }

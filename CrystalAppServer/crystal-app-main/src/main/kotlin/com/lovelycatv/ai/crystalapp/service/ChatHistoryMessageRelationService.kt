@@ -12,7 +12,11 @@ import com.lovelycatv.ai.crystalapp.entity.ChatHistoryMessageRelationEntity
  * @version 1.0
  */
 interface ChatHistoryMessageRelationService : IService<ChatHistoryMessageRelationEntity?> {
-    fun getChildrenNodes(parentId: Long): List<ChatHistoryMessageRelationEntity>
+    fun getChildrenNodes(parentId: Long): List<ChatHistoryMessageRelationEntity> {
+        return this.batchGetChildrenNodes(listOf(parentId))[parentId] ?: emptyList()
+    }
+
+    fun batchGetChildrenNodes(parentIds: Collection<Long>): Map<Long, List<ChatHistoryMessageRelationEntity>>
 
     fun addChildNode(parentId: Long, childId: Long): ServiceFuncResult<*>
 

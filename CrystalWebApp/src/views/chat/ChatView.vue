@@ -1,8 +1,16 @@
 <script setup lang="ts">
 import {Top} from "@element-plus/icons-vue";
-import {ref} from "vue";
-import type {ChatHistoryMessage} from "@/net/api/contact-message-controller.ts";
+import {ref, watch} from "vue";
+import type {ChatHistoryMessage, LocalChatHistoryMessage} from "@/net/api/history-message-controller.ts";
+import {getChatHistoryLeaves, getChatHistoryUpwards} from "@/net/api/history-message-controller.ts";
+import {useRoute} from "vue-router";
+import router from "@/router";
 
+const route = useRoute()
+const contactId = ref(route.params.contactId as string)
+watch(router.currentRoute, () => {
+  contactId.value = route.params.contactId as string
+})
 
 const messageInputRef = ref(null)
 const inputMessage = ref('')
@@ -27,26 +35,41 @@ const messageInputEvent = () => {
 /**
  * Chat History
  */
-const chatHistory = ref<ChatHistoryMessage[]>([
-  {
-    id: 1,
-    senderType: 0,
-    sender: 1,
-    messageType: 0,
-    message: 'Hello! How can I help you today? : )',
-    createdTime: 1800,
-    revoked: false
-  },
-  {
-    id: 2,
-    senderType: 1,
-    sender: 1,
-    messageType: 0,
-    message: 'Introduce yourself plz',
-    createdTime: 2000,
-    revoked: false
+const renderingChatHistory = ref<ChatHistoryMessage[]>([])
+
+const chatHistoryTree = ref<ChatHistoryMessage>({
+  childrenSize: 0,
+  createdTime: 0,
+  id: "",
+  message: "",
+  messageType: 0,
+  revoked: false,
+  sender: "",
+  senderType: 0
+})
+
+const chatHistoryLeaves = ref<ChatHistoryMessage[]>([])
+const selectedLeafNode = ref<ChatHistoryMessage>()
+
+watch(contactId, () => {
+  getChatHistoryLeaves(contactId.value).then((res) => {
+    chatHistoryLeaves.value = res.data.sort((a, b) => a.createdTime - b.createdTime)
+    // Select the latest leaf
+    const selected: ChatHistoryMessage = chatHistoryLeaves.value[chatHistoryLeaves.value.length - 1]
+    renderingChatHistory.value = [selected]
+    selectedLeafNode.value = selected
+  })
+})
+
+function loadChatHistoryUpwards() {
+  if (renderingChatHistory.value.length == 0) {
+    return
   }
-])
+
+  getChatHistoryUpwards(contactId.value, renderingChatHistory.value[0].id).then((res) => {
+    renderingChatHistory.value = [...res.data.reverse(), ...renderingChatHistory.value]
+  })
+}
 
 /**
  * Send Message
@@ -62,6 +85,7 @@ function sendMessage() {
 
 <template>
   <main class="width-100 height-100 flex flex-vertical">
+    <div><el-button @click="loadChatHistoryUpwards()">Load More</el-button></div>
     <div class="chat-container flex-grow-1 flex flex-vertical">
       <div
           class="chat-message-container flex flex-horizontal gap-2"
@@ -69,7 +93,7 @@ function sendMessage() {
             'flex-horizontal-reversed': message.senderType == 1,
             'flex-align-self-end': message.senderType == 1
           }"
-          v-for="(message, index) in chatHistory as ChatHistoryMessage[]"
+          v-for="(message, index) in renderingChatHistory as ChatHistoryMessage[]"
       >
         <el-avatar class="flex-shrink-0" size="default" />
 

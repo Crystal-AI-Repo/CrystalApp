@@ -18,10 +18,14 @@ import org.springframework.stereotype.Service
  */
 @Service
 class ChatHistoryMessageRelationServiceImpl : ChatHistoryMessageRelationService, ServiceImpl<ChatHistoryMessageRelationMapper, ChatHistoryMessageRelationEntity?>() {
-    override fun getChildrenNodes(parentId: Long): List<ChatHistoryMessageRelationEntity> {
+    override fun batchGetChildrenNodes(parentIds: Collection<Long>): Map<Long, List<ChatHistoryMessageRelationEntity>> {
+        if (parentIds.isEmpty()) {
+            return emptyMap()
+        }
+
         return list(
-            QueryWrapper<ChatHistoryMessageRelationEntity>().eq("current_id", parentId)
-        ).filterNotNull().sortedBy { it.orderNo }
+            QueryWrapper<ChatHistoryMessageRelationEntity>().`in`("current_id", *parentIds.toTypedArray())
+        ).filterNotNull().groupBy { it.currentId }
     }
 
     override fun addChildNode(parentId: Long, childId: Long): ServiceFuncResult<*> {

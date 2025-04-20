@@ -166,7 +166,7 @@ class ChatHistoryMessageServiceImpl(
         }
     }
 
-    override fun fetchHistoryMessages(messageId: Long, size: Long): ServiceFuncResult<List<ChatHistoryMessageEntity>> {
+    override fun fetchHistoryMessagesUpwards(messageId: Long, size: Long): ServiceFuncResult<List<ChatHistoryMessageEntity>> {
         val result = chatHistoryMessageRelationService.searchUpwardsForRoot(messageId, size)
         return if (result.success) {
             val rawChain = result.data
@@ -174,11 +174,19 @@ class ChatHistoryMessageServiceImpl(
                 // The given message is the only one in history
                 ServiceFuncResult.success("", emptyList())
             } else {
+                val rawMessageEntities = this.listByIds(
+                    "id", { it.id }, rawChain.map { it.currentId }.toTypedArray()
+                ).values.filterNotNull()
+
+                val children = chatHistoryMessageRelationService.batchGetChildrenNodes(rawMessageEntities.map { it.id })
+
                 ServiceFuncResult.success(
                     message = "",
-                    data = this.listByIds(
-                        "id", { it.id }, rawChain.map { it.currentId }.toTypedArray()
-                    ).values.filterNotNull()
+                    data = rawMessageEntities.map {
+                        it.apply {
+                            this.childrenSize = children[this.id]?.size ?: 0
+                        }
+                    }
                 )
             }
         } else {
