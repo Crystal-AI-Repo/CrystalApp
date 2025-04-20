@@ -62,4 +62,19 @@ data class ChatHistoryMessageEntity(
 
     fun getMessageTypeEnum() = ChatMessageType.getByTypeId(this.messageType)
         ?: throw IllegalStateException("Unsupported message type: ${this.messageType}")
+
+    fun isAvailable() = !this.revoked
+
+    companion object {
+        val nodeFilter = object : ChatHistoryMessage.NodeFilter<ChatHistoryMessageEntity> {
+            override fun getUniqueId(t: ChatHistoryMessageEntity): Any {
+                return t.id
+            }
+
+            override fun isAvailable(t: ChatHistoryMessageEntity): Boolean {
+                return t.isAvailable()
+            }
+
+        }
+    }
 }

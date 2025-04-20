@@ -166,7 +166,7 @@ class UserContactServiceImpl(
             if (this.success) this.data!! else return this.autoFitNull()
         }
 
-        val historyMessages = tree.getMessageChainByBranchPath(branchPath).filter { !it.revoked }
+        val historyMessages = tree.getMessageChainByBranchPath(branchPath).filter { it.isAvailable() }
         val leafNode = historyMessages.last()
 
         val result = chatHistoryMessageService.addNewMessage(leafNode.id, ChatMemberType.USER, senderUserId, TextChatMessage(message))

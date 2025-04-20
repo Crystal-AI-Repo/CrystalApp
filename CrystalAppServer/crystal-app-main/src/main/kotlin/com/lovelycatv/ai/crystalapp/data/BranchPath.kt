@@ -16,5 +16,5 @@ data class BranchPath(
     else if (!path.contains(this.separator))
         listOf(this.path.toInt())
     else
-        this.path.trim().split(",").map { it.toInt() }
+        this.path.split(",").map { it.trim().toInt() }
 }

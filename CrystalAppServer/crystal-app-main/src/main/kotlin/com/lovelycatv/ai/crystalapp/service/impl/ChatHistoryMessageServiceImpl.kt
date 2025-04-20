@@ -7,6 +7,7 @@ import com.lovelycatv.ai.crystalapp.common.utils.SnowIdGenerator
 import com.lovelycatv.ai.crystalapp.common.utils.listByIds
 import com.lovelycatv.ai.crystalapp.common.utils.transactionRollback
 import com.lovelycatv.ai.crystalapp.data.AbstractChatMessage
+import com.lovelycatv.ai.crystalapp.data.BranchPath
 import com.lovelycatv.ai.crystalapp.entity.ChatHistoryMessageEntity
 import com.lovelycatv.ai.crystalapp.enums.ChatMemberType
 import com.lovelycatv.ai.crystalapp.enums.ChatMessageType
@@ -139,6 +140,23 @@ class ChatHistoryMessageServiceImpl(
 
         if (message.getMessageTypeEnum() == ChatMessageType.START) {
             return ServiceFuncResult.failed("Could not revoke the message history start mark")
+        }
+
+        val childrenNodes = chatHistoryMessageRelationService.getChildrenNodes(messageId)
+        if (childrenNodes.size > 1) {
+            val subTreeSearchResult = this.getFullMessageHistoryTree(messageId)
+            if (subTreeSearchResult.success) {
+                val subTree = subTreeSearchResult.data!!
+                val availableLeafNodes = subTree.findAllLeafPaths().map {
+                    subTree.getMessageChainByBranchPath(BranchPath(it)).last { it.isAvailable() }
+                }
+
+                if (availableLeafNodes.count { it.id == messageId } < childrenNodes.size - 1) {
+                    return ServiceFuncResult.failed("Could not revoke a node having other available sub-trees")
+                }
+            } else {
+                return subTreeSearchResult
+            }
         }
 
         return if (this.updateById(message.apply { this.revoked = true })) {

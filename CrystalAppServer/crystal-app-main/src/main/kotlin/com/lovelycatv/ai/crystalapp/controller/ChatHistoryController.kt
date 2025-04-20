@@ -1,9 +1,11 @@
 package com.lovelycatv.ai.crystalapp.controller
 
 import com.lovelycatv.ai.crystalapp.common.Result
+import com.lovelycatv.ai.crystalapp.common.transform
 import com.lovelycatv.ai.crystalapp.common.transformServiceFuncResult
 import com.lovelycatv.ai.crystalapp.common.utils.catchException
 import com.lovelycatv.ai.crystalapp.data.BranchPath
+import com.lovelycatv.ai.crystalapp.entity.ChatHistoryMessageEntity
 import com.lovelycatv.ai.crystalapp.service.ChatHistoryMessageService
 import com.lovelycatv.ai.crystalapp.service.UserContactService
 import com.lovelycatv.auth.utils.AuthPrincipal
@@ -34,7 +36,9 @@ class ChatHistoryController(
         // Validate message root
         val validateResult = userContactService.validateMessageRoot(authPrincipal.userId, contactId, messageId)
         if (validateResult.success) {
-            chatHistoryMessageService.fetchHistoryMessages(messageId, 20)
+            chatHistoryMessageService.fetchHistoryMessages(messageId, 20).transform {
+                it.filter { it.isAvailable() }
+            }
         } else {
             validateResult
         }.transformServiceFuncResult()
@@ -52,8 +56,7 @@ class ChatHistoryController(
         } else {
             val tree = chatHistoryMessageService.getFullMessageHistoryTree(contact.chatHistoryStart)
             if (tree.success) {
-                val paths = tree.data!!.findAllLeafPaths()
-                Result.success("", paths.map { BranchPath(it) }.map { tree.data!!.getMessageByBranchPath(it) })
+                Result.success("", tree.data!!.findAllAvailableLeaves(ChatHistoryMessageEntity.nodeFilter).map { it.last() })
             } else {
                 tree.transformServiceFuncResult()
             }
