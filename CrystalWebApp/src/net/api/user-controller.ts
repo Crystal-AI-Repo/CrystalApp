@@ -2,13 +2,13 @@ import {doGet, doPost} from "@/net/axios-request.ts";
 import {userTokenHeader} from "@/utils/auth-utils.ts";
 
 export interface User {
-    id: number,
+    id: string,
     username: string,
     nickname: string,
     email: string,
     avatar: string,
-    registeredTime: number,
-    modifiedTime: number,
+    registeredTime: string,
+    modifiedTime: string,
     activated: boolean
 }
 

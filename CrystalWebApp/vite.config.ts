@@ -45,6 +45,11 @@ export default defineConfig({
         changeOrigin: true,
         ws: true,
         rewrite: (path) => path.replace(/^\/api\//, '')
+      },'/d-api': {
+        target: "http://127.0.0.1:5210",
+        changeOrigin: true,
+        ws: true,
+        rewrite: (path) => path.replace(/^\/d-api\//, '')
       }
     }
   }

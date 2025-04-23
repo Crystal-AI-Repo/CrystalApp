@@ -3,7 +3,7 @@ import {userTokenHeader} from "@/utils/auth-utils.ts";
 import type {PagedData} from "@/net/PagedData.ts";
 
 export interface ChatCharacter {
-    id: number,
+    id: string,
     authorUid: number,
     name: string,
     description: string,
@@ -12,28 +12,28 @@ export interface ChatCharacter {
     modelId: string,
     maxContextLength: number,
     avatar: string,
-    createdTime: number,
-    modifiedTime: number
+    createdTime: string,
+    modifiedTime: string
 }
 
 export const getEmptyChatCharacter = (): ChatCharacter => {
     return {
         authorUid: 0,
         avatar: "",
-        createdTime: 0,
+        createdTime: "0",
         description: "",
         greetingMessage: "",
-        id: 0,
+        id: "0",
         maxContextLength: 0,
         modelId: "",
-        modifiedTime: 0,
+        modifiedTime: "0",
         name: "",
         prompt: ""
     }
 }
 
 export interface SaveChatCharacterDTO {
-    id?: number,
+    id?: string,
     name: string,
     description: string,
     model: string,

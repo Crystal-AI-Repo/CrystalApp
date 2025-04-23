@@ -135,6 +135,18 @@ class ChatHistoryMessageServiceImpl(
         }
     }
 
+    override fun modifyMessage(messageId: Long, message: AbstractChatMessage): ServiceFuncResult<*> {
+        val existing = this.getById(messageId) ?: return ServiceFuncResult.failed("Message $messageId not found")
+
+        return if (updateById(existing.apply {
+            this.messageType = message.messageType.typeId
+            this.message = message.originalMessage
+        }))
+            ServiceFuncResult.success("")
+        else
+            ServiceFuncResult.failed("Could not update message: $messageId")
+    }
+
     override fun revokeMessage(messageId: Long): ServiceFuncResult<*> {
         val message = this.getById(messageId) ?: return ServiceFuncResult.failed("Message $messageId not found")
 

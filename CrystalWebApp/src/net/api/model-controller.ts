@@ -2,7 +2,7 @@ import {applicationFormUrlEncoded, doGet, doPost} from "@/net/axios-request.ts";
 import {userTokenHeader} from "@/utils/auth-utils.ts";
 
 export interface Model {
-    id: number,
+    id: string,
     displayName: string,
     qualifiedName: string,
     contextLength: number

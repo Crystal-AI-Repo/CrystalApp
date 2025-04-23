@@ -43,7 +43,7 @@ class AuthorizationModuleImpls(
             }
 
             override fun setAllowedUrls(): List<String> {
-                return listOf("/auth/token")
+                return listOf("/auth/token", "/error", "/contact/sendMessage")
             }
 
             override fun setCustomFrontLoginUrl() = GlobalConstants.getCustomFrontLoginPageUrl(crystalAppSettings.oauth2.authFrontBaseUrl)

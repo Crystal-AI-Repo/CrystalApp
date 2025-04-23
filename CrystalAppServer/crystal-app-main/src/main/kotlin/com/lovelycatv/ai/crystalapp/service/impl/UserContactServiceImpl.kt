@@ -125,7 +125,7 @@ class UserContactServiceImpl(
     }
 
     @Transactional
-    override fun sendMessage(senderUserId: Long, contactId: Long, message: String, branchPath: BranchPath): ServiceFuncResult<Flux<*>?> {
+    override suspend fun sendMessage(senderUserId: Long, contactId: Long, message: String, branchPath: BranchPath): ServiceFuncResult<Flux<*>?> {
         val targetContact = this.getByContactIdAndUid(contactId, senderUserId) ?: return ServiceFuncResult.failedWithData("Contact $contactId not found")
         val chatHistoryStartFrom = if (targetContact.chatHistoryStart <= 0) {
             // Chat history not found, create a header
@@ -169,10 +169,10 @@ class UserContactServiceImpl(
         val historyMessages = tree.getMessageChainByBranchPath(branchPath).filter { it.isAvailable() }
         val leafNode = historyMessages.last()
 
-        val result = chatHistoryMessageService.addNewMessage(leafNode.id, ChatMemberType.USER, senderUserId, TextChatMessage(message))
+        val resultOfSaveUserMessage = chatHistoryMessageService.addNewMessage(leafNode.id, ChatMemberType.USER, senderUserId, TextChatMessage(message))
 
-        return if (result.success) {
-            val userMessageEntity = result.data!!
+        return if (resultOfSaveUserMessage.success) {
+            val userMessageEntity = resultOfSaveUserMessage.data!!
 
             // Message has been saved into database, call chat completion
             when (targetContact.getContactTypeEnum()) {
@@ -181,30 +181,59 @@ class UserContactServiceImpl(
                     if (character != null) {
                         val model = modelService.getById(character.modelId)
                         if (model != null) {
-                            val characterPrompts = listOf(TextPromptMessage(AbstractPromptMessage.Role.SYSTEM, character.prompt))
-                            val combinedChatHistory = (historyMessages + listOf(userMessageEntity)).mapNotNull {
-                                val role = when (it.getSenderTypeEnum()) {
-                                    ChatMemberType.CHAT_ROLE -> AbstractPromptMessage.Role.ASSISTANT
-                                    ChatMemberType.USER -> AbstractPromptMessage.Role.USER
+                            val resultOfSaveAssistantMessage = chatHistoryMessageService.addNewMessage(userMessageEntity.id, ChatMemberType.CHAT_ROLE, character.id!!, TextChatMessage("Server is overload now."))
+                            if (resultOfSaveAssistantMessage.success) {
+                                val characterPrompts = listOf(TextPromptMessage(AbstractPromptMessage.Role.SYSTEM, character.prompt))
+                                val combinedChatHistory = (historyMessages + listOf(userMessageEntity)).mapNotNull {
+                                    val role = when (it.getSenderTypeEnum()) {
+                                        ChatMemberType.CHAT_ROLE -> AbstractPromptMessage.Role.ASSISTANT
+                                        ChatMemberType.USER -> AbstractPromptMessage.Role.USER
+                                    }
+
+                                    when (it.getMessageTypeEnum()) {
+                                        ChatMessageType.TEXT -> TextPromptMessage(role, it.message)
+                                        else -> null
+                                    }
                                 }
 
-                                when (it.getMessageTypeEnum()) {
-                                    ChatMessageType.TEXT -> TextPromptMessage(role, it.message)
-                                    else -> null
+                                val assistantMessageId = resultOfSaveAssistantMessage.data!!.id
+
+                                val flux = openApiChatService.streamChatCompletion(
+                                    sessionId = assistantMessageId.toString(),
+                                    modelName = model.qualifiedName,
+                                    prompts = characterPrompts + combinedChatHistory,
+                                    onCompleted = { output, _, _ ->
+                                        val t = chatHistoryMessageService.modifyMessage(assistantMessageId, TextChatMessage(output))
+                                        if (!t.success) {
+                                            logger.error("Could not save assistant message to $assistantMessageId. Reason: ${t.message}, UserInput: $message, AssistantOutput: $output")
+                                        }
+                                    }
+                                )
+
+                                if (flux != null) {
+                                    ServiceFuncResult.success(resultOfSaveAssistantMessage.data!!.id.toString(), flux)
+                                } else {
+                                    // Rollback
+                                    transactionRollback()
+
+                                    ServiceFuncResult.failedWithData("Could not start chat completions, internal server error")
                                 }
+                            } else {
+                                // Rollback
+                                transactionRollback()
+
+                                ServiceFuncResult.failedWithData("Could not save pre-assistant message")
                             }
-
-                            ServiceFuncResult.success("", openApiChatService.streamChatCompletion(
-                                modelName = model.qualifiedName,
-                                prompts = characterPrompts + combinedChatHistory,
-                                onCompleted = { output, _, _ ->
-                                    chatHistoryMessageService.addNewMessage(userMessageEntity.id, ChatMemberType.CHAT_ROLE, character.id!!, TextChatMessage(output))
-                                }
-                            ))
                         } else {
+                            // Rollback
+                            transactionRollback()
+
                             ServiceFuncResult.failedWithData("Model ${character.modelId} not found")
                         }
                     } else {
+                        // Rollback
+                        transactionRollback()
+
                         ServiceFuncResult.failedWithData("Character ${targetContact.chatTargetId} not found")
                     }
                 }
@@ -215,7 +244,7 @@ class UserContactServiceImpl(
             // Rollback
             transactionRollback()
 
-            result.autoFitNull()
+            resultOfSaveUserMessage.autoFitNull()
         }
     }
 

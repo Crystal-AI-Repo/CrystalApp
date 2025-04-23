@@ -12,12 +12,16 @@ import com.lovelycatv.ai.crystalapp.service.ChatHistoryMessageRelationService
 import com.lovelycatv.ai.crystalapp.service.UserContactService
 import com.lovelycatv.ai.crystalapp.vo.UserContactVO
 import com.lovelycatv.auth.utils.AuthPrincipal
+import com.lovelycatv.auth.utils.withPrincipal
 import org.springframework.http.MediaType
+import org.springframework.scheduling.annotation.Async
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.security.Principal
 
 /**
  * @author lovelycat
@@ -83,7 +87,7 @@ class UserContactController(
     }
 
     @PostMapping("/sendMessageWithBranch", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
-    fun sendMessageToContactWithBranch(
+    suspend fun sendMessageToContactWithBranch(
         authPrincipal: AuthPrincipal,
         @RequestParam("contactId")
         contactId: Long,
@@ -99,21 +103,24 @@ class UserContactController(
             result.transformServiceFuncResult().toJSONString()
         }
     }
+    data class V(
+        val contactId: Long,
+        val message: String,
+        val messageId: Long
+    )
 
-    @PostMapping("/sendMessage", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
-    fun sendMessageToContact(
-        authPrincipal: AuthPrincipal,
-        @RequestParam("contactId")
-        contactId: Long,
-        @RequestParam("message")
-        message: String,
-        @RequestParam("messageId")
-        messageId: Long
+    @Async
+    @PostMapping("/sendMessage", produces = [MediaType.TEXT_EVENT_STREAM_VALUE, MediaType.APPLICATION_JSON_VALUE])
+    suspend fun sendMessageToContact(
+        principal: Principal,
+        @RequestBody v: V
     ): Any {
+        val authPrincipal = withPrincipal(principal) { it }
+
         // Find path to this message
-        val searchResult = chatHistoryMessageRelationService.searchPathToNode(messageId)
+        val searchResult = chatHistoryMessageRelationService.searchPathToNode(v.messageId)
         return if (searchResult.success) {
-            val result = userContactService.sendMessage(authPrincipal.userId, contactId, message, searchResult.data!!)
+            val result = userContactService.sendMessage(authPrincipal.userId, v.contactId, v.message, searchResult.data!!)
             if (result.success) {
                 result.data!!
             } else {

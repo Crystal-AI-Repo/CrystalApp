@@ -1,12 +1,19 @@
 import type {PagedData} from "@/net/PagedData.ts";
-import {applicationFormUrlEncodedHeader, doGet, doPost} from "@/net/axios-request.ts";
-import {userTokenHeader} from "@/utils/auth-utils.ts";
+import {
+    applicationFormUrlEncoded,
+    applicationFormUrlEncodedHeader,
+    applicationJson,
+    doGet,
+    doPost
+} from "@/net/axios-request.ts";
+import {getUserToken, userTokenHeader} from "@/utils/auth-utils.ts";
 import type {ChatCharacter} from "@/net/api/chat-character-controller.ts";
+import {AxiosOpenApiRequest} from "@/net/axios-open-api.ts";
 
 export interface UserContact {
-    id: number,
+    id: string,
     contactType: number,
-    chatTargetId: number
+    chatTargetId: string
 }
 
 export interface UserContactVO {
@@ -22,10 +29,10 @@ export async function addChatCharacterContact(characterId: number) {
     return (await doPost("/api/contact/addCharacterChat", {...userTokenHeader(), ...applicationFormUrlEncodedHeader}, { characterId: characterId }))
 }
 
-export async function sendMessage(contactId: number, messageId: number, message: string) {
-    return (await doPost(
-        "/api/contact/sendMessage",
-        {...userTokenHeader(), ...applicationFormUrlEncodedHeader},
-        { contactId: contactId, messageId: messageId, message: message }
-    ))
+const axiosOpenApiRequest = new AxiosOpenApiRequest<{contactId: string, messageId: string, message: string}>("/api/contact/sendMessage", getUserToken())
+
+export async function *sendMessageToContact(contactId: string, messageId: string, message: string) {
+    for await (const pack of axiosOpenApiRequest.sendMessage({ contactId: contactId, messageId: messageId, message: message })) {
+        yield pack
+    }
 }

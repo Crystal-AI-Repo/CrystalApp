@@ -1,7 +1,12 @@
 import {padStart} from "@/utils/number-utils.ts";
 
-export function formatTimestamp(timestamp: number) {
-    const date = new Date(timestamp);
+export function formatTimestamp(timestamp: number | string) {
+    let date
+    if (typeof timestamp === "string") {
+        date = new Date(Number.parseInt(timestamp));
+    } else {
+        date = new Date(timestamp);
+    }
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
     const day = date.getDate();

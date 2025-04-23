@@ -31,7 +31,7 @@ interface UserContactService : IService<UserContactEntity?> {
     fun updateContactDeletionMark(contactId: Long, deleted: Boolean): ServiceFuncResult<*>
 
     @Transactional
-    fun sendMessage(senderUserId: Long, contactId: Long, message: String, branchPath: BranchPath): ServiceFuncResult<Flux<*>?>
+    suspend fun sendMessage(senderUserId: Long, contactId: Long, message: String, branchPath: BranchPath): ServiceFuncResult<Flux<*>?>
 
     fun revokeMessage(userId: Long, contactId: Long, messageId: Long): ServiceFuncResult<*>
 

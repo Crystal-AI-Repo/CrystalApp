@@ -68,7 +68,7 @@ watch(router.currentRoute, () => {
 
 .contact-list {
   min-width: 240px;
-  max-width: 15vw;
+  max-width: 280px;
   box-shadow: 0 0 .25rem 0 rgba(0, 0, 0, .15);
 }
 </style>

@@ -33,8 +33,8 @@ crystal:
     client-secret: crystal-app
     auth-front-base-url: http://localhost:6173
 
-logging:
-  level:
-    com.zaxxer.hikari: DEBUG
-    org.springframework.jdbc.datasource: DEBUG
-    com.baomidou.dynamic.datasource: DEBUG
+# logging:
+#   level:
+#     com.zaxxer.hikari: DEBUG
+#     org.springframework.jdbc.datasource: DEBUG
+#     com.baomidou.dynamic.datasource: DEBUG

@@ -29,3 +29,7 @@ export function clearUserAuthToken() {
 export function userTokenHeader() {
   return { 'Authorization': `Bearer ${localStorage.getItem("ticket")}` }
 }
+
+export function getUserToken() {
+    return localStorage.getItem("ticket")
+}

@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import {Top} from "@element-plus/icons-vue";
 import {ref, watch} from "vue";
-import type {ChatHistoryMessage, LocalChatHistoryMessage} from "@/net/api/history-message-controller.ts";
+import type {ChatHistoryMessage} from "@/net/api/history-message-controller.ts";
 import {getChatHistoryLeaves, getChatHistoryUpwards} from "@/net/api/history-message-controller.ts";
 import {useRoute} from "vue-router";
 import router from "@/router";
+import {AxiosOpenApiRequest} from "@/net/axios-open-api.ts";
+import {sendMessageToContact} from "@/net/api/user-contact-controller.ts";
+import type {OpenAIStreamChunk} from "@/data/open-api.ts";
 
 const route = useRoute()
 const contactId = ref(route.params.contactId as string)
@@ -37,6 +40,47 @@ const messageInputEvent = () => {
  */
 const renderingChatHistory = ref<ChatHistoryMessage[]>([])
 
+function getCurrentReplyingMessage(): ChatHistoryMessage | null {
+  if (renderingChatHistory.value.length == 0) {
+    return null
+  }
+
+  return renderingChatHistory.value[renderingChatHistory.value.length - 1]
+}
+
+function addRenderingUserMessage(msg: string) {
+  renderingChatHistory.value.push({
+    id: "0",
+    childrenSize: 0,
+    createdTime: new Date().getTime(),
+    message: msg,
+    messageType: 0,
+    revoked: false,
+    sender: contactId.value,
+    senderType: 1
+  })
+}
+
+function onNewMessageStreamReceived(pack: OpenAIStreamChunk) {
+  const existing: ChatHistoryMessage | undefined = renderingChatHistory.value.find((e: ChatHistoryMessage) => e.id == pack.id)
+  if (existing == undefined) {
+    renderingChatHistory.value.push({
+      id: pack.id,
+      childrenSize: 0,
+      createdTime: pack.created,
+      message: pack.choices[0].delta.content,
+      messageType: 0,
+      revoked: false,
+      sender: contactId.value,
+      senderType: 0
+    })
+  } else {
+    existing.messageType = 0
+    existing.message = existing.message + pack.choices[0].delta.content
+  }
+
+}
+
 const chatHistoryTree = ref<ChatHistoryMessage>({
   childrenSize: 0,
   createdTime: 0,
@@ -51,7 +95,7 @@ const chatHistoryTree = ref<ChatHistoryMessage>({
 const chatHistoryLeaves = ref<ChatHistoryMessage[]>([])
 const selectedLeafNode = ref<ChatHistoryMessage>()
 
-watch(contactId, () => {
+const contactIdChangeEvent = () => {
   getChatHistoryLeaves(contactId.value).then((res) => {
     chatHistoryLeaves.value = res.data.sort((a, b) => a.createdTime - b.createdTime)
     // Select the latest leaf
@@ -59,6 +103,10 @@ watch(contactId, () => {
     renderingChatHistory.value = [selected]
     selectedLeafNode.value = selected
   })
+}
+
+watch(contactId, () => {
+  contactIdChangeEvent()
 })
 
 function loadChatHistoryUpwards() {
@@ -74,17 +122,54 @@ function loadChatHistoryUpwards() {
 /**
  * Send Message
  */
-function sendMessage() {
+async function sendMessage() {
   if (sendMessageButtonBlocking.value) {
     return
   }
 
-  inputMessage.value = ''
+  const replyingMessage = getCurrentReplyingMessage()
+  if (replyingMessage == null) {
+    ElMessage.error("Could not find header of history messages")
+    return
+  }
+
+  sendMessageButtonBlocking.value = true
+
+  addRenderingUserMessage(inputMessage.value)
+
+  let firstPackReceived = false
+  for await (const pack of sendMessageToContact(contactId.value, replyingMessage.id, inputMessage.value)) {
+    if (!firstPackReceived) {
+      firstPackReceived = true
+      inputMessage.value = ''
+      sendMessageButtonBlocking.value = false
+    }
+
+    onNewMessageStreamReceived(pack)
+  }
+
 }
+
+contactIdChangeEvent()
 </script>
 
 <template>
-  <main class="width-100 height-100 flex flex-vertical">
+  <main class="width-100 height-100 flex flex-vertical overflow-y-scroll">
+    <div class="input-area-container flex flex-vertical">
+      <textarea ref="messageInputRef" class="input" v-model="inputMessage" rows="1" @input="messageInputEvent" />
+      <div class="flex flex-horizontal mt-4">
+        <span class="flex-grow-1" />
+        <el-button
+            size="default"
+            type="primary"
+            :icon="Top"
+            circle
+            :disabled="sendMessageButtonBlocking"
+            @click="sendMessage"
+        />
+      </div>
+    </div>
+
     <div><el-button @click="loadChatHistoryUpwards()">Load More</el-button></div>
     <div class="chat-container flex-grow-1 flex flex-vertical">
       <div
@@ -104,14 +189,8 @@ function sendMessage() {
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="input-area-container flex flex-vertical">
-      <textarea ref="messageInputRef" class="input" v-model="inputMessage" rows="1" @input="messageInputEvent" />
-      <div class="flex flex-horizontal mt-4">
-        <span class="flex-grow-1" />
-        <el-button size="default" type="primary" :icon="Top" circle :disabled="sendMessageButtonBlocking" @click="sendMessage" />
-      </div>
+      <div style="height: 16rem" />
     </div>
   </main>
 </template>
@@ -124,7 +203,7 @@ function sendMessage() {
 }
 
 .chat-message-container {
-  max-width: 20vw;
+  max-width: 30vw;
   margin-bottom: 1rem;
 
   .message-container {
@@ -141,14 +220,17 @@ function sendMessage() {
 }
 
 .input-area-container {
+  position: absolute;
+  bottom: 0;
   align-self: center;
   width: 35vw;
   min-width: 300px;
   margin: 2rem;
-  background: rgba(0, 0, 0, .05);
+  background: #f5f5f5;
   padding: 1rem;
   border-radius: .5rem;
   box-shadow: 0 0 1rem 0 rgba(0, 0, 0, .05);
+  z-index: 999;
 
   .input {
     width: 100%;
