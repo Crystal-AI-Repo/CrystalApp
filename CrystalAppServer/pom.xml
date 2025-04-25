@@ -25,6 +25,8 @@
         <module>authorization-module</module>
         <module>crystal-app-main</module>
         <module>common-module</module>
+        <module>file-resource-module</module>
+        <module>crystal-main-module</module>
     </modules>
     <scm>
         <connection/>
@@ -209,9 +211,22 @@
                 <artifactId>common-module</artifactId>
                 <version>0.0.1-SNAPSHOT</version>
             </dependency>
+
             <dependency>
                 <groupId>com.lovelycatv.auth</groupId>
                 <artifactId>authorization-module</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.lovelycatv.ai.crystalapp</groupId>
+                <artifactId>crystal-main-module</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.lovelycatv.ai.crystalapp</groupId>
+                <artifactId>file-resource-module</artifactId>
                 <version>0.0.1-SNAPSHOT</version>
             </dependency>
 

@@ -4,7 +4,10 @@ import {ArrowDown, Search} from "@element-plus/icons-vue";
 import {useI18n} from "vue-i18n";
 import {ref} from "vue";
 import router from "@/router";
-import {clearUserAuthToken} from "@/utils/auth-utils.ts";
+import {clearUserAuthToken, getUserAuthToken, getUserToken} from "@/utils/auth-utils.ts";
+import {getUserAvatarUrl} from "@/utils/url-utils.ts";
+
+const serverBaseUrl = import.meta.env.VITE_SERVER_BASE_URL
 
 const { t } = useI18n()
 
@@ -69,7 +72,7 @@ function logout() {
       >
         <template #reference>
           <div class="profile-box flex flex-horizontal flex-center-vertically ml-4">
-            <el-avatar :size="24" :src="''" class="flex-shrink-0" />
+            <el-avatar :size="24" :src="getUserAvatarUrl(getUserAuthToken()?.payloads.uid ?? '0')" class="flex-shrink-0" />
             <ArrowDown class="icon ml-2" />
           </div>
         </template>

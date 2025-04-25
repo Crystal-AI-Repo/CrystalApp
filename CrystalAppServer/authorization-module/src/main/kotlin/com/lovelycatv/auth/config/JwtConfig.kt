@@ -109,7 +109,7 @@ class JwtConfig(
                 claims.claim("permissions", authoritySet)
 
                 if (principal is UserEntity) {
-                    claims.claim("uid", principal.id)
+                    claims.claim("uid", principal.id.toString())
                 }
             }
         }

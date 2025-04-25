@@ -1,7 +1,12 @@
+import {jwtDecode} from "jwt-decode";
+
 export interface UserAuthToken {
     accessToken: string,
     refreshToken: string,
-    expires: number
+    expires: number,
+    payloads: {
+        uid: string
+    }
 }
 
 export function getUserAuthToken(): UserAuthToken | null {
@@ -13,10 +18,15 @@ export function getUserAuthToken(): UserAuthToken | null {
         return null
     }
 
+    const decoded = jwtDecode<{ uid: string }>(a);
+
     return {
         accessToken: a,
         refreshToken: b,
         expires: Number.parseInt(c),
+        payloads: {
+            uid: decoded.uid
+        }
     }
 }
 

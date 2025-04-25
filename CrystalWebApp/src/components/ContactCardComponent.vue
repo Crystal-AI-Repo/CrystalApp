@@ -2,6 +2,7 @@
 
 import type {UserContactVO} from "@/net/api/user-contact-controller.ts";
 import {Delete} from "@element-plus/icons-vue";
+import {getCharacterAvatarUrl} from "@/utils/url-utils.ts";
 
 const props = defineProps<{
   contact: UserContactVO,
@@ -21,7 +22,7 @@ const props = defineProps<{
       @click="() => props.clickEvent()"
   >
     <div class="contact-card flex flex-horizontal flex-center-vertically" v-if="props.contact.contact.contactType == 0">
-      <el-avatar class="flex-shrink-0" size="large" />
+      <el-avatar class="flex-shrink-0" size="large" :src="getCharacterAvatarUrl(props.contact.reifiedContact?.id ?? '0')" />
       <div class="width-100 flex flex-vertical ml-4">
         <p class="contact-name">{{ props.contact.reifiedContact.name }}</p>
         <p class="contact-msg">{{ props.contact.reifiedContact.greetingMessage }}</p>
@@ -44,7 +45,7 @@ const props = defineProps<{
       @click="() => props.clickEvent()"
   >
     <div class="contact-plain-card flex flex-horizontal flex-center-vertically" v-if="props.contact.contact.contactType == 0">
-      <el-avatar class="flex-shrink-0" size="default" />
+      <el-avatar class="flex-shrink-0" size="default" :src="getCharacterAvatarUrl(props.contact.reifiedContact?.id ?? '0')" />
       <div class="width-100 flex flex-vertical ml-4">
         <!-- Row 1 -->
         <div class="flex flex-horizontal flex-center-vertically">

@@ -6,6 +6,9 @@ import {getMyProfile, updateMyProfile} from "@/net/api/user-controller.ts";
 import TabComponent, {TabItem} from "@/components/TabComponent.vue";
 import router from "@/router";
 import {Check, Close, Edit} from "@element-plus/icons-vue";
+import {getUserAvatarUrl} from "@/utils/url-utils.ts";
+
+const serverBaseUrl = import.meta.env.VITE_SERVER_BASE_URL
 
 const currentPath = ref(location.pathname)
 watch(router.currentRoute, () => {
@@ -71,7 +74,7 @@ async function submitEditProfile() {
 <template>
   <main class="page-container">
     <div class="flex flex-horizontal flex-center-vertically">
-      <el-avatar size="large" src="" />
+      <el-avatar size="large" :src="getUserAvatarUrl(myProfile.id)" />
 
       <div class="flex flex-vertical ml-4 mr-4">
         <el-input v-if="editingProfile" v-model="nicknameEditInput" size="default" />

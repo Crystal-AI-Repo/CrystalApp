@@ -16,7 +16,7 @@ export interface UserProfileUpdateDTO {
     nickname: string
 }
 
-export async function getUserProfile(uid: number) {
+export async function getUserProfile(uid: string) {
     return (await doGet<User>("/api/user/profile", {}, { uid: uid })).data
 }
 

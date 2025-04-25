@@ -19,14 +19,23 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.lovelycatv.ai.crystalapp</groupId>
+            <artifactId>common-module</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.lovelycatv.auth</groupId>
             <artifactId>authorization-module</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>com.lovelycatv.ai.crystal.openaiapi</groupId>
-            <artifactId>open-api-common</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <groupId>com.lovelycatv.ai.crystalapp</groupId>
+            <artifactId>crystal-main-module</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.lovelycatv.ai.crystalapp</groupId>
+            <artifactId>file-resource-module</artifactId>
         </dependency>
     </dependencies>
 

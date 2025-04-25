@@ -25,7 +25,7 @@ export async function getUserContactList(page: number) {
     return (await doGet<PagedData<UserContactVO>>("/api/contact/list", {...userTokenHeader()}, { page: page }))
 }
 
-export async function addChatCharacterContact(characterId: number) {
+export async function addChatCharacterContact(characterId: string) {
     return (await doPost("/api/contact/addCharacterChat", {...userTokenHeader(), ...applicationFormUrlEncodedHeader}, { characterId: characterId }))
 }
 

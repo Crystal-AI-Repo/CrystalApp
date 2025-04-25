@@ -4,7 +4,7 @@ import type {PagedData} from "@/net/PagedData.ts";
 
 export interface ChatCharacter {
     id: string,
-    authorUid: number,
+    authorUid: string,
     name: string,
     description: string,
     prompt: string,
@@ -18,7 +18,7 @@ export interface ChatCharacter {
 
 export const getEmptyChatCharacter = (): ChatCharacter => {
     return {
-        authorUid: 0,
+        authorUid: "0",
         avatar: "",
         createdTime: "0",
         description: "",
@@ -41,7 +41,7 @@ export interface SaveChatCharacterDTO {
     greeting: string
 }
 
-export async function getChatCharacterDetails(characterId: number) {
+export async function getChatCharacterDetails(characterId: string) {
     return (await doGet<ChatCharacter>("/api/character/details", {...userTokenHeader()}, { id: characterId })).data
 }
 
@@ -61,6 +61,6 @@ export async function saveChatCharacter(dto: SaveChatCharacterDTO) {
     )
 }
 
-export async function deleteChatCharacter(characterId: number) {
+export async function deleteChatCharacter(characterId: string) {
     return await doPost("/api/character/delete", {...userTokenHeader(), ...applicationFormUrlEncodedHeader}, { id: characterId })
 }

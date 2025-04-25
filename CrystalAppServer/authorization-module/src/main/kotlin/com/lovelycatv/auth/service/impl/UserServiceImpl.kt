@@ -15,6 +15,8 @@ import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * @author lovelycat
@@ -66,6 +68,18 @@ class UserServiceImpl(
         val user = getById(uid) ?: return ServiceFuncResult.failed("User $uid not found")
         return if (updateById(user.apply {
             this.nickname = dto.nickname
+        })) {
+            ServiceFuncResult.success("User profile updated successfully")
+        } else {
+            ServiceFuncResult.failed("Could not update user profile")
+        }
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    override fun updateAvatar(uid: Long, resourceId: Long): ServiceFuncResult<*> {
+        val user = getById(uid) ?: return ServiceFuncResult.failed("User $uid not found")
+        return if (updateById(user.apply {
+                this.avatar = resourceId.toString()
         })) {
             ServiceFuncResult.success("User profile updated successfully")
         } else {

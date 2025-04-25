@@ -3,7 +3,6 @@ package com.lovelycatv.ai.crystalapp.test
 import com.lovelycatv.ai.crystalapp.data.BranchPath
 import com.lovelycatv.ai.crystalapp.data.ChatHistoryMessage
 import org.junit.jupiter.api.Test
-import kotlin.random.Random
 import kotlin.test.assertTrue
 
 /**

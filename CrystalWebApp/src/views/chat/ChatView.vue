@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import {Top} from "@element-plus/icons-vue";
-import {ref, watch} from "vue";
+import {ref, toRef, watch} from "vue";
 import type {ChatHistoryMessage} from "@/net/api/history-message-controller.ts";
 import {getChatHistoryLeaves, getChatHistoryUpwards} from "@/net/api/history-message-controller.ts";
 import {useRoute} from "vue-router";
 import router from "@/router";
-import {AxiosOpenApiRequest} from "@/net/axios-open-api.ts";
 import {sendMessageToContact} from "@/net/api/user-contact-controller.ts";
 import type {OpenAIStreamChunk} from "@/data/open-api.ts";
+import {getCharacterAvatarUrl, getUserAvatarUrl} from "@/utils/url-utils.ts";
+import {useKVCacheStore} from "@/stores/kv-cache-store.ts";
+import {getUserAuthToken} from "@/utils/auth-utils.ts";
+import {useChatCharacterCache, useChatCharacterStore} from "@/stores/chat-character-store.ts";
 
 const route = useRoute()
 const contactId = ref(route.params.contactId as string)
@@ -49,6 +52,7 @@ function getCurrentReplyingMessage(): ChatHistoryMessage | null {
 }
 
 function addRenderingUserMessage(msg: string) {
+  const uid = getUserAuthToken()?.payloads.uid ?? '0'
   renderingChatHistory.value.push({
     id: "0",
     childrenSize: 0,
@@ -56,9 +60,11 @@ function addRenderingUserMessage(msg: string) {
     message: msg,
     messageType: 0,
     revoked: false,
-    sender: contactId.value,
+    sender: uid,
     senderType: 1
   })
+
+  cacheStore.getUserProfileByUid(uid)
 }
 
 function onNewMessageStreamReceived(pack: OpenAIStreamChunk) {
@@ -115,7 +121,12 @@ function loadChatHistoryUpwards() {
   }
 
   getChatHistoryUpwards(contactId.value, renderingChatHistory.value[0].id).then((res) => {
-    renderingChatHistory.value = [...res.data.reverse(), ...renderingChatHistory.value]
+    const data = res.data.filter(e => e.messageType != 0)
+    renderingChatHistory.value = [...data.reverse(), ...renderingChatHistory.value]
+
+    data.filter(e => e.senderType == 1).map((e: ChatHistoryMessage) => e.sender).forEach(e => {
+      cacheStore.getUserProfileByUid(e)
+    })
   })
 }
 
@@ -151,6 +162,22 @@ async function sendMessage() {
 }
 
 contactIdChangeEvent()
+
+/**
+ * Cache Store
+ */
+const cacheStore = useKVCacheStore()
+const userProfileMap = toRef(cacheStore.userProfiles)
+
+const chatCharacterCacheIds = ref<string[]>([])
+const { getChatCharacterState } = useChatCharacterCache(chatCharacterCacheIds)
+
+watch(renderingChatHistory, () => {
+  chatCharacterCacheIds.value = renderingChatHistory.value
+      .filter((e: ChatHistoryMessage) => e.senderType == 0 && e.messageType != 0)
+      .map((e: ChatHistoryMessage) => e.sender)
+  console.log(chatCharacterCacheIds.value)
+})
 </script>
 
 <template>
@@ -180,10 +207,16 @@ contactIdChangeEvent()
           }"
           v-for="(message, index) in renderingChatHistory as ChatHistoryMessage[]"
       >
-        <el-avatar class="flex-shrink-0" size="default" />
+        <el-avatar
+            class="flex-shrink-0"
+            size="default"
+            :src="message.senderType == 0 ? getCharacterAvatarUrl(message.sender) : message.senderType == 1 ? getUserAvatarUrl(userProfileMap.get(message.sender).id) : ''"
+        />
 
         <div class="flex flex-vertical">
-          <p :class="{'text-align-right': message.senderType == 1}">{{ message.sender }}</p>
+          <p :class="{'text-align-right': message.senderType == 1}">
+            {{ message.senderType == 0 ? getChatCharacterState(message.sender).data?.name ?? 'LOADING' : message.senderType == 1 ? userProfileMap.get(message.sender)?.nickname ?? '' : '' }}
+          </p>
           <div class="message-container">
             <p class="message">{{ message.message }}</p>
           </div>

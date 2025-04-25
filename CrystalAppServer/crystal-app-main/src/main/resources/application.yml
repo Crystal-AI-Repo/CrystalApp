@@ -32,6 +32,10 @@ crystal:
     client-id: crystal-app
     client-secret: crystal-app
     auth-front-base-url: http://localhost:6173
+  resource:
+    local:
+      base-path: D:/crystal-app-data
+      avatar-path: /avatar
 
 # logging:
 #   level:

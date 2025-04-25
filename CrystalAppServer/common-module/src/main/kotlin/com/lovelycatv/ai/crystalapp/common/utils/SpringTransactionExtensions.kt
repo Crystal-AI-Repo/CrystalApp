@@ -9,6 +9,6 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport
  */
 class SpringTransactionExtensions private constructor()
 
-fun transactionRollback() {
+fun rollbackTransaction() {
     TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
 }

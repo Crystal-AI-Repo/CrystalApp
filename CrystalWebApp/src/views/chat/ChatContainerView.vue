@@ -2,12 +2,18 @@
 
 import HeaderComponent from "@/components/HeaderComponent.vue";
 
-import {ref, watch} from "vue";
+import {ref, toRef, watch} from "vue";
 import type {UserContactVO} from "@/net/api/user-contact-controller.ts";
 import {getUserContactList} from "@/net/api/user-contact-controller.ts";
 import ContactCardComponent from "@/components/ContactCardComponent.vue";
 import router from "@/router";
 import {useRoute} from "vue-router";
+import {useKVCacheStore} from "@/stores/kv-cache-store.ts";
+
+/**
+ * Cache Store
+ */
+const cacheStore = useKVCacheStore()
 
 const currentPage = ref(1)
 const totalPages = ref(1)
@@ -19,6 +25,12 @@ async function refreshData() {
   totalPages.value = result.pages
   totalCount.value = result.total
   currentPageData.value = result.records
+
+  result.records.map((e: UserContactVO) => {
+    if (e.contact.contactType == 0) {
+      cacheStore.getChatCharacterById(e.reifiedContact!!.id)
+    }
+  })
 }
 
 refreshData()

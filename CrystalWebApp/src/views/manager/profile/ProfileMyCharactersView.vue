@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import {ref, watch} from "vue";
+import {ref, toRef, watch} from "vue";
 import type {ChatCharacter} from "@/net/api/chat-character-controller.ts";
 import {
   deleteChatCharacter,
@@ -8,13 +8,19 @@ import {
   getMyCreatedChatCharacters
 } from "@/net/api/chat-character-controller.ts";
 import {formatTimestamp} from "@/utils/datetime-utils.ts";
-import {getUserProfile, User} from "@/net/api/user-controller.ts";
 import router from "@/router";
 import {Delete, Edit} from "@element-plus/icons-vue";
 import {useI18n} from "vue-i18n";
 import {addChatCharacterContact} from "@/net/api/user-contact-controller.ts";
 import {showSimpleDialog} from "@/utils/dialog-utils.ts";
 import {DelayedAction} from "@/utils/delay-utils.ts";
+import {getUserAvatarUrl} from "@/utils/url-utils.ts";
+import {useKVCacheStore} from "@/stores/kv-cache-store.ts";
+
+const cacheStore = useKVCacheStore()
+
+const userProfileMap = toRef(cacheStore.userProfiles)
+
 
 const { t } = useI18n()
 
@@ -43,15 +49,10 @@ async function refreshData() {
 
 refreshData()
 
-const userProfileMap = ref<Map<number, User>>(new Map())
 
 watch(currentPageData, () => {
   currentPageData.value?.forEach(async (e: ChatCharacter) => {
-    if (!userProfileMap.value.has(e.authorUid)) {
-      // Prevent multi-request for the same user
-      userProfileMap.value.set(e.authorUid, {})
-      userProfileMap.value.set(e.authorUid, await getUserProfile(e.authorUid))
-    }
+    await cacheStore.getUserProfileByUid(e.authorUid)
   })
 })
 
@@ -146,7 +147,7 @@ function confirmAddChatCharacter(character: ChatCharacter) {
             </div>
 
             <div class="flex flex-horizontal flex-center-vertically p-2">
-              <el-avatar class="flex-shrink-0" size="small" />
+              <el-avatar class="flex-shrink-0" size="small" :src="getUserAvatarUrl(item.authorUid)" />
 
               <div class="flex flex-vertical ml-2">
                 <p class="author-name">{{ userProfileMap.get(item.authorUid).nickname }}</p>
