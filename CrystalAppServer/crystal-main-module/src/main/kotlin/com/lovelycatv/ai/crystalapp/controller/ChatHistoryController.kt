@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import com.lovelycatv.ai.crystalapp.common.Result
+import com.lovelycatv.ai.crystalapp.common.ServiceFuncResult
 
 /**
  * @author lovelycat
@@ -33,13 +34,13 @@ class ChatHistoryController(
         messageId: Long
     ): Result<*> = catchException {
         // Validate message root
-        val validateResult = userContactService.validateMessageRoot(authPrincipal.userId, contactId, messageId)
-        if (validateResult.success) {
+        val validateResult = userContactService.validateContactOwner(authPrincipal.userId, contactId)
+        if (validateResult != null) {
             chatHistoryMessageService.fetchHistoryMessagesUpwards(messageId, 20).transform {
                 it.filter { it.isAvailable() }
             }
         } else {
-            validateResult
+            ServiceFuncResult.notResourceOwner()
         }.transformServiceFuncResult()
     }
 

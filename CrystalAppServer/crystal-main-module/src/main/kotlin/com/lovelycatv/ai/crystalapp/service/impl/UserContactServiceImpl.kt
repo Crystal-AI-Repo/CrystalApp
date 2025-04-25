@@ -6,6 +6,7 @@ import com.lovelycatv.ai.crystalapp.common.ServiceFuncResult
 import com.lovelycatv.ai.crystalapp.common.autoFitNull
 import com.lovelycatv.ai.crystalapp.common.data.message.AbstractPromptMessage
 import com.lovelycatv.ai.crystalapp.common.data.message.TextPromptMessage
+import com.lovelycatv.ai.crystalapp.common.service.CacheServiceImpl
 import com.lovelycatv.ai.crystalapp.common.utils.getOneByColumn
 import com.lovelycatv.ai.crystalapp.common.utils.getPagedData
 import com.lovelycatv.ai.crystalapp.common.utils.logger
@@ -18,6 +19,9 @@ import com.lovelycatv.ai.crystalapp.enums.ChatMessageType
 import com.lovelycatv.ai.crystalapp.enums.ChatTarget
 import com.lovelycatv.ai.crystalapp.mapper.UserContactMapper
 import com.lovelycatv.ai.crystalapp.service.*
+import com.lovelycatv.ai.crystalapp.store.UserContactCacheStore
+import jakarta.annotation.Resource
+import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
@@ -34,8 +38,12 @@ class UserContactServiceImpl(
     private val chatHistoryMessageRelationService: ChatHistoryMessageRelationService,
     private val openApiChatService: OpenApiChatService,
     private val modelService: ModelService
-) : UserContactService, ServiceImpl<UserContactMapper, UserContactEntity?>() {
+) : UserContactService, CacheServiceImpl<UserContactMapper, UserContactEntity?>() {
     private val logger = logger()
+
+    @Lazy
+    @Resource
+    private lateinit var userContactCacheStore: UserContactCacheStore
 
     override fun getUserContactList(uid: Long, page: Long, size: Long, includingDeleted: Boolean): ServiceFuncResult<PagedData<UserContactEntity>> {
         return ServiceFuncResult.success(
@@ -99,10 +107,13 @@ class UserContactServiceImpl(
     }
 
     override fun getByContactIdAndUid(contactId: Long, uid: Long): UserContactEntity? {
-        return this.getOneByColumn(
-            "user_id" to uid,
-            "id" to contactId
-        )
+        return userContactCacheStore.get(contactId)?.run {
+            if (this.userId == uid) {
+                this
+            } else {
+                null
+            }
+        }
     }
 
     override fun getByUidAndTargetId(uid: Long, type: ChatMemberType, targetId: Long): UserContactEntity? {

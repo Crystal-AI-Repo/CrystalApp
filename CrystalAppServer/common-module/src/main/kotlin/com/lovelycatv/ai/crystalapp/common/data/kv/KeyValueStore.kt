@@ -8,6 +8,10 @@ package com.lovelycatv.ai.crystalapp.common.data.kv
 interface KeyValueStore<K, V> {
     fun get(key: K): V?
 
+    fun batchGet(keys: Collection<K>): Map<K, V?> {
+        return keys.associateWith { this.get(it) }
+    }
+
     fun set(key: K, value: V)
 
     fun remove(key: K): V?

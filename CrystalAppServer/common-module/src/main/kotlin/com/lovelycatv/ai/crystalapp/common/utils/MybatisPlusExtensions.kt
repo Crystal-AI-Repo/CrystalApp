@@ -1,11 +1,10 @@
 package com.lovelycatv.ai.crystalapp.common.utils
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
-import com.baomidou.mybatisplus.core.mapper.BaseMapper
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
 import com.baomidou.mybatisplus.extension.service.IService
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl
 import com.lovelycatv.ai.crystalapp.common.PagedData
+import com.lovelycatv.ai.crystalapp.common.service.ICacheService
 import java.io.Serializable
 
 /**
@@ -31,9 +30,14 @@ fun <T> IService<T?>.listByColumn(vararg pairs: Pair<String, Any?>): List<T> {
     return this.list(wrapper).filterNotNull()
 }
 
-fun <K: Serializable, T> IService<T?>.listByIds(idColumnName: String, entityId: (T) -> K, characterIds: Array<out K>): Map<K, T?> {
-    val characters = this.list(QueryWrapper<T>().`in`(idColumnName, *characterIds)).filterNotNull().associateBy { entityId.invoke(it) }
-    return characterIds.associateWith { characters[it] }
+fun <K: Serializable, T> IService<T?>.listByIds(idColumnName: String, entityId: (T) -> K, ids: Array<out K>): Map<K, T?> {
+    val data = this.list(QueryWrapper<T>().`in`(idColumnName, *ids)).filterNotNull().associateBy { entityId.invoke(it) }
+    return ids.associateWith { data[it] }
+}
+
+fun <K: Serializable, T> ICacheService<T?>.listByIds(entityId: (T) -> K, ids: Array<out K>): Map<K, T?> {
+    val data = this.originalListByIds(ids.toList()).filterNotNull().associateBy { entityId.invoke(it) }
+    return ids.associateWith { data[it] }
 }
 
 fun <T> IService<T?>.getPagedData(

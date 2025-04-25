@@ -2,6 +2,7 @@ package com.lovelycatv.ai.crystalapp.service
 
 import com.baomidou.mybatisplus.extension.service.IService
 import com.lovelycatv.ai.crystalapp.common.ServiceFuncResult
+import com.lovelycatv.ai.crystalapp.common.service.ICacheService
 import com.lovelycatv.ai.crystalapp.data.AbstractChatMessage
 import com.lovelycatv.ai.crystalapp.entity.ChatHistoryMessageEntity
 import com.lovelycatv.ai.crystalapp.enums.ChatMemberType
@@ -13,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional
  * @since 2025-04-14 20:37
  * @version 1.0
  */
-interface ChatHistoryMessageService : IService<ChatHistoryMessageEntity?> {
+interface ChatHistoryMessageService : ICacheService<ChatHistoryMessageEntity?> {
     /**
      * Add a header node as the start of a new chat message tree.
      * At the same time, if the param [message] is not null,

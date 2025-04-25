@@ -1,7 +1,7 @@
 package com.lovelycatv.ai.crystalapp.service.impl
 
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl
 import com.lovelycatv.ai.crystalapp.common.ServiceFuncResult
+import com.lovelycatv.ai.crystalapp.common.service.CacheServiceImpl
 import com.lovelycatv.ai.crystalapp.common.transform
 import com.lovelycatv.ai.crystalapp.common.utils.SnowIdGenerator
 import com.lovelycatv.ai.crystalapp.common.utils.listByIds
@@ -14,9 +14,12 @@ import com.lovelycatv.ai.crystalapp.enums.ChatMessageType
 import com.lovelycatv.ai.crystalapp.mapper.ChatHistoryMessageMapper
 import com.lovelycatv.ai.crystalapp.service.ChatHistoryMessageRelationService
 import com.lovelycatv.ai.crystalapp.service.ChatHistoryMessageService
+import com.lovelycatv.ai.crystalapp.store.ChatHistoryCacheStore
 import jakarta.annotation.Resource
+import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.io.Serializable
 
 /**
  * @author lovelycat
@@ -28,7 +31,15 @@ class ChatHistoryMessageServiceImpl(
     private val chatHistoryMessageRelationService: ChatHistoryMessageRelationService,
     @Resource(name = "chatHistoryMessageIdGenerator")
     private val chatHistoryMessageIdGenerator: SnowIdGenerator
-) : ChatHistoryMessageService, ServiceImpl<ChatHistoryMessageMapper, ChatHistoryMessageEntity?>() {
+) : ChatHistoryMessageService, CacheServiceImpl<ChatHistoryMessageMapper, ChatHistoryMessageEntity?>() {
+    @Lazy
+    @Resource
+    private lateinit var chatHistoryCacheStore: ChatHistoryCacheStore
+
+    override fun getById(id: Serializable?): ChatHistoryMessageEntity? {
+        return chatHistoryCacheStore.get(id as Long)
+    }
+
     /**
      * Add a header node as the start of a new chat message tree.
      * At the same time, if the param [message] is not null,
@@ -122,6 +133,7 @@ class ChatHistoryMessageServiceImpl(
         val resultOfAddRelation = chatHistoryMessageRelationService.addChildNode(parentId, messageId)
 
         return if (resultOfSaveMessage && resultOfAddRelation.success) {
+            chatHistoryCacheStore.set(messageId, entity)
             ServiceFuncResult.success("Created", entity)
         } else {
             // Rollback Transaction
@@ -186,9 +198,7 @@ class ChatHistoryMessageServiceImpl(
                 // The given message is the only one in history
                 ServiceFuncResult.success("", emptyList())
             } else {
-                val rawMessageEntities = this.listByIds(
-                    "id", { it.id }, rawChain.map { it.currentId }.toTypedArray()
-                ).values.filterNotNull()
+                val rawMessageEntities = chatHistoryCacheStore.batchGet(rawChain.map { it.currentId }).values.filterNotNull()
 
                 val children = chatHistoryMessageRelationService.batchGetChildrenNodes(rawMessageEntities.map { it.id })
 
@@ -212,11 +222,7 @@ class ChatHistoryMessageServiceImpl(
             return
         }
 
-        val children = this.listByIds(
-            idColumnName = "id",
-            entityId = { it.id },
-            characterIds = childrenNodes.map { it.nextId }.toTypedArray()
-        ).values.filterNotNull()
+        val children = chatHistoryCacheStore.batchGet(childrenNodes.map { it.nextId }).values.filterNotNull()
 
         children.forEach {
             this.recursiveFindChildrenNodes(it)

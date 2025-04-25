@@ -1,13 +1,17 @@
 package com.lovelycatv.ai.crystalapp.service.impl
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl
 import com.lovelycatv.ai.crystalapp.common.ServiceFuncResult
+import com.lovelycatv.ai.crystalapp.common.utils.filterNotNullValues
 import com.lovelycatv.ai.crystalapp.common.utils.getOneByColumn
 import com.lovelycatv.ai.crystalapp.data.BranchPath
 import com.lovelycatv.ai.crystalapp.entity.ChatHistoryMessageRelationEntity
 import com.lovelycatv.ai.crystalapp.mapper.ChatHistoryMessageRelationMapper
 import com.lovelycatv.ai.crystalapp.service.ChatHistoryMessageRelationService
+import com.lovelycatv.ai.crystalapp.store.ChatHistoryRelationChildrenCacheStore
+import com.lovelycatv.ai.crystalapp.store.ChatHistoryRelationParentCacheStore
+import jakarta.annotation.Resource
+import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
 
 /**
@@ -17,19 +21,28 @@ import org.springframework.stereotype.Service
  */
 @Service
 class ChatHistoryMessageRelationServiceImpl : ChatHistoryMessageRelationService, ServiceImpl<ChatHistoryMessageRelationMapper, ChatHistoryMessageRelationEntity?>() {
+    @Lazy
+    @Resource
+    private lateinit var chatHistoryRelationChildrenCacheStore: ChatHistoryRelationChildrenCacheStore
+
+    @Lazy
+    @Resource
+    private lateinit var chatHistoryRelationParentCacheStore: ChatHistoryRelationParentCacheStore
+
     override fun batchGetChildrenNodes(parentIds: Collection<Long>): Map<Long, List<ChatHistoryMessageRelationEntity>> {
         if (parentIds.isEmpty()) {
             return emptyMap()
         }
 
-        return list(
-            QueryWrapper<ChatHistoryMessageRelationEntity>().`in`("current_id", *parentIds.toTypedArray())
-        ).filterNotNull().groupBy { it.currentId }
+        return chatHistoryRelationChildrenCacheStore.batchGet(parentIds).filterNotNullValues()
     }
 
     override fun addChildNode(parentId: Long, childId: Long): ServiceFuncResult<*> {
         val children = this.getChildrenNodes(parentId)
-        return if (save(ChatHistoryMessageRelationEntity(parentId, childId, children.size))) {
+        val entity = ChatHistoryMessageRelationEntity(parentId, childId, children.size)
+        return if (save(entity)) {
+            chatHistoryRelationChildrenCacheStore.set(parentId, chatHistoryRelationChildrenCacheStore.get(childId)?.let { it + listOf(entity) } ?: listOf(entity))
+            chatHistoryRelationParentCacheStore.set(childId, listOf(entity))
             ServiceFuncResult.success("Success")
         } else {
             ServiceFuncResult.failed("Could not add relation between Parent: [$parentId] and Child: [$childId]")
@@ -43,7 +56,10 @@ class ChatHistoryMessageRelationServiceImpl : ChatHistoryMessageRelationService,
      * @return If the given [currentId] is root, the return value will be null
      */
     override fun getParentNode(currentId: Long): ChatHistoryMessageRelationEntity? {
-        return this.getOneByColumn("next_id" to currentId)
+        return chatHistoryRelationParentCacheStore.get(currentId)?.run {
+            if (this.isNotEmpty()) this.first() else null
+        }
+
     }
 
     /**

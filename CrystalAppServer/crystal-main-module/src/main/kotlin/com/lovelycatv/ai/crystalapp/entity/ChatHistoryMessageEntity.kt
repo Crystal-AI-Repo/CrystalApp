@@ -37,6 +37,11 @@ data class ChatHistoryMessageEntity(
     @TableField(exist = false)
     override val children: List<ChatHistoryMessageEntity> = this._children
 
+    override fun clearChildren() {
+        this._children.clear()
+        this.childrenSize = 0
+    }
+
     // Used in getting history messages
     @TableField(exist = false)
     var childrenSize: Int = 0

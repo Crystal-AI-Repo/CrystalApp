@@ -9,6 +9,10 @@ data class Tree<T>(val data: T) : ChatHistoryMessage<Tree<T>> {
     private val _children: MutableList<Tree<T>> = mutableListOf()
     override val children: List<Tree<T>> = this._children
 
+    override fun clearChildren() {
+        this._children.clear()
+    }
+
     /**
      * Get the sub-type instance of [ChatHistoryMessage]
      *

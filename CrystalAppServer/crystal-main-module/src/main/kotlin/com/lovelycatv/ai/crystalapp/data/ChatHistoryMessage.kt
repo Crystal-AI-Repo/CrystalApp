@@ -10,6 +10,8 @@ import com.lovelycatv.ai.crystalapp.common.utils.startWith
 interface ChatHistoryMessage<T: ChatHistoryMessage<T>> {
     val children: List<T>
 
+    fun clearChildren()
+
     /**
      * Get the sub-type instance of [ChatHistoryMessage]
      *

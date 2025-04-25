@@ -202,6 +202,10 @@ class ChatHistoryMessageTreeTests {
         private val _children: MutableList<TestTree> = mutableListOf()
         override val children: List<TestTree> = this._children
 
+        override fun clearChildren() {
+            this._children.clear()
+        }
+
         /**
          * Get the sub-type instance of [ChatHistoryMessage]
          *
