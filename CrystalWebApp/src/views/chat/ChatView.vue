@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {Top} from "@element-plus/icons-vue";
-import {ref, toRef, watch} from "vue";
+import {ref, watch} from "vue";
 import type {ChatHistoryMessage} from "@/net/api/history-message-controller.ts";
 import {getChatHistoryLeaves, getChatHistoryUpwards} from "@/net/api/history-message-controller.ts";
 import {useRoute} from "vue-router";
@@ -8,9 +8,8 @@ import router from "@/router";
 import {sendMessageToContact} from "@/net/api/user-contact-controller.ts";
 import type {OpenAIStreamChunk} from "@/data/open-api.ts";
 import {getCharacterAvatarUrl, getUserAvatarUrl} from "@/utils/url-utils.ts";
-import {useKVCacheStore} from "@/stores/kv-cache-store.ts";
 import {getUserAuthToken} from "@/utils/auth-utils.ts";
-import {useChatCharacterCache, useChatCharacterStore} from "@/stores/chat-character-store.ts";
+import {chatCharacterStore, userProfileStore} from "@/stores/generic-kv-store.ts";
 
 const route = useRoute()
 const contactId = ref(route.params.contactId as string)
@@ -63,8 +62,6 @@ function addRenderingUserMessage(msg: string) {
     sender: uid,
     senderType: 1
   })
-
-  cacheStore.getUserProfileByUid(uid)
 }
 
 function onNewMessageStreamReceived(pack: OpenAIStreamChunk) {
@@ -166,17 +163,20 @@ contactIdChangeEvent()
 /**
  * Cache Store
  */
-const cacheStore = useKVCacheStore()
-const userProfileMap = toRef(cacheStore.userProfiles)
-
 const chatCharacterCacheIds = ref<string[]>([])
-const { getChatCharacterState } = useChatCharacterCache(chatCharacterCacheIds)
+const { getChatCharacterState } = chatCharacterStore.useCache('getChatCharacterState', chatCharacterCacheIds)
+
+const userProfileCacheIds = ref<string[]>([])
+const { getUserState } = userProfileStore.useCache('getUserState', userProfileCacheIds)
 
 watch(renderingChatHistory, () => {
   chatCharacterCacheIds.value = renderingChatHistory.value
       .filter((e: ChatHistoryMessage) => e.senderType == 0 && e.messageType != 0)
       .map((e: ChatHistoryMessage) => e.sender)
-  console.log(chatCharacterCacheIds.value)
+
+  userProfileCacheIds.value = renderingChatHistory.value
+      .filter((e: ChatHistoryMessage) => e.senderType == 1 && e.messageType != 0)
+      .map((e: ChatHistoryMessage) => e.sender)
 })
 </script>
 
@@ -210,12 +210,12 @@ watch(renderingChatHistory, () => {
         <el-avatar
             class="flex-shrink-0"
             size="default"
-            :src="message.senderType == 0 ? getCharacterAvatarUrl(message.sender) : message.senderType == 1 ? getUserAvatarUrl(userProfileMap.get(message.sender).id) : ''"
+            :src="message.senderType == 0 ? getCharacterAvatarUrl(message.sender) : message.senderType == 1 ? getUserAvatarUrl(getUserState(message.sender).data?.id ?? '0') : ''"
         />
 
         <div class="flex flex-vertical">
           <p :class="{'text-align-right': message.senderType == 1}">
-            {{ message.senderType == 0 ? getChatCharacterState(message.sender).data?.name ?? 'LOADING' : message.senderType == 1 ? userProfileMap.get(message.sender)?.nickname ?? '' : '' }}
+            {{ message.senderType == 0 ? getChatCharacterState(message.sender).data?.name ?? 'LOADING' : message.senderType == 1 ? getUserState(message.sender).data?.nickname ?? '' : '' }}
           </p>
           <div class="message-container">
             <p class="message">{{ message.message }}</p>

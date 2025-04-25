@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import {ref, toRef, watch} from "vue";
+import {ref, watch} from "vue";
 import type {ChatCharacter} from "@/net/api/chat-character-controller.ts";
 import {
   deleteChatCharacter,
@@ -15,11 +15,13 @@ import {addChatCharacterContact} from "@/net/api/user-contact-controller.ts";
 import {showSimpleDialog} from "@/utils/dialog-utils.ts";
 import {DelayedAction} from "@/utils/delay-utils.ts";
 import {getUserAvatarUrl} from "@/utils/url-utils.ts";
-import {useKVCacheStore} from "@/stores/kv-cache-store.ts";
+import {userProfileStore} from "@/stores/generic-kv-store.ts";
 
-const cacheStore = useKVCacheStore()
-
-const userProfileMap = toRef(cacheStore.userProfiles)
+/**
+ * Cache Store
+ */
+const userProfileCacheIds = ref<string[]>([])
+const { getUserState } = userProfileStore.useCache('getUserState', userProfileCacheIds)
 
 
 const { t } = useI18n()
@@ -28,7 +30,7 @@ const gridDataRefreshing = ref(false)
 const currentPage = ref(1)
 const totalPages = ref(1)
 const totalCount = ref(0)
-const currentPageData = ref<ChatCharacter[]>()
+const currentPageData = ref<ChatCharacter[]>([])
 
 async function refreshData() {
   gridDataRefreshing.value = true
@@ -51,9 +53,7 @@ refreshData()
 
 
 watch(currentPageData, () => {
-  currentPageData.value?.forEach(async (e: ChatCharacter) => {
-    await cacheStore.getUserProfileByUid(e.authorUid)
-  })
+  userProfileCacheIds.value = currentPageData.value.map((e: ChatCharacter) => e.authorUid)
 })
 
 function onCardClick(item: ChatCharacter) {
@@ -150,7 +150,7 @@ function confirmAddChatCharacter(character: ChatCharacter) {
               <el-avatar class="flex-shrink-0" size="small" :src="getUserAvatarUrl(item.authorUid)" />
 
               <div class="flex flex-vertical ml-2">
-                <p class="author-name">{{ userProfileMap.get(item.authorUid).nickname }}</p>
+                <p class="author-name">{{ getUserState(item.authorUid).data?.nickname }}</p>
                 <p class="created-time">{{ formatTimestamp(item.createdTime) }}</p>
               </div>
             </div>
