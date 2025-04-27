@@ -220,15 +220,29 @@
 
             <dependency>
                 <groupId>com.lovelycatv.ai.crystalapp</groupId>
-                <artifactId>crystal-main-module</artifactId>
+                <artifactId>crystal-main-module-declarations</artifactId>
                 <version>0.0.1-SNAPSHOT</version>
             </dependency>
 
             <dependency>
                 <groupId>com.lovelycatv.ai.crystalapp</groupId>
-                <artifactId>file-resource-module</artifactId>
+                <artifactId>crystal-main-module-implementations</artifactId>
                 <version>0.0.1-SNAPSHOT</version>
             </dependency>
+
+            <dependency>
+                <groupId>com.lovelycatv.ai.crystalapp</groupId>
+                <artifactId>file-resource-module-declarations</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.lovelycatv.ai.crystalapp</groupId>
+                <artifactId>file-resource-module-implementations</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+            </dependency>
+
+
 
             <dependency>
                 <groupId>org.springframework.ai</groupId>

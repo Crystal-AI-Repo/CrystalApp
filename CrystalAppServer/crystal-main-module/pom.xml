@@ -11,6 +11,11 @@
 
     <groupId>com.lovelycatv.ai.crystalapp</groupId>
     <artifactId>crystal-main-module</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>crystal-main-module-declarations</module>
+        <module>crystal-main-module-implementations</module>
+    </modules>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -23,23 +28,9 @@
             <groupId>com.lovelycatv.ai.crystalapp</groupId>
             <artifactId>common-module</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>com.lovelycatv.auth</groupId>
-            <artifactId>authorization-module</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.lovelycatv.ai.crystal.openaiapi</groupId>
-            <artifactId>open-api-common</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
     </dependencies>
 
     <build>
-        <sourceDirectory>src/main/kotlin</sourceDirectory>
-        <testSourceDirectory>src/test/kotlin</testSourceDirectory>
-
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

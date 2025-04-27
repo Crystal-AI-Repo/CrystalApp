@@ -1,0 +1,232 @@
+package com.lovelycatv.ai.crystalapp.service
+
+import com.lovelycatv.ai.crystalapp.common.ServiceFuncResult
+import com.lovelycatv.ai.crystalapp.common.service.CacheServiceImpl
+import com.lovelycatv.ai.crystalapp.common.transform
+import com.lovelycatv.ai.crystalapp.common.utils.SnowIdGenerator
+import com.lovelycatv.ai.crystalapp.common.utils.rollbackTransaction
+import com.lovelycatv.ai.crystalapp.data.AbstractChatMessage
+import com.lovelycatv.ai.crystalapp.data.BranchPath
+import com.lovelycatv.ai.crystalapp.entity.ChatHistoryMessageEntity
+import com.lovelycatv.ai.crystalapp.enums.ChatMemberType
+import com.lovelycatv.ai.crystalapp.enums.ChatMessageType
+import com.lovelycatv.ai.crystalapp.mapper.ChatHistoryMessageMapper
+import com.lovelycatv.ai.crystalapp.service.ChatHistoryMessageRelationService
+import com.lovelycatv.ai.crystalapp.service.ChatHistoryMessageService
+import com.lovelycatv.ai.crystalapp.store.ChatHistoryCacheStore
+import jakarta.annotation.Resource
+import org.springframework.context.annotation.Lazy
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.io.Serializable
+
+/**
+ * @author lovelycat
+ * @since 2025-04-14 20:37
+ * @version 1.0
+ */
+@Service
+class ChatHistoryMessageServiceImpl(
+    private val chatHistoryMessageRelationService: ChatHistoryMessageRelationService,
+    @Resource(name = "chatHistoryMessageIdGenerator")
+    private val chatHistoryMessageIdGenerator: SnowIdGenerator
+) : ChatHistoryMessageService, CacheServiceImpl<ChatHistoryMessageMapper, ChatHistoryMessageEntity?>() {
+    @Lazy
+    @Resource
+    private lateinit var chatHistoryCacheStore: ChatHistoryCacheStore
+
+    override fun getById(id: Serializable?): ChatHistoryMessageEntity? {
+        return chatHistoryCacheStore.get(id as Long)
+    }
+
+    /**
+     * Add a header node as the start of a new chat message tree.
+     * At the same time, if the param [message] is not null,
+     * a child node will be created and associated with the header node.
+     * If the param [message] is null, only 1 header node will be created.
+     *
+     * @param senderType Type of whom sent this message, [ChatMessageType]
+     * @param senderId   SenderId, could be userId / characterId ...
+     * @param message    [AbstractChatMessage]
+     * @return Id of this header node
+     */
+    @Transactional
+    override fun createMessageTreeHeader(
+        senderType: ChatMemberType,
+        senderId: Long,
+        message: AbstractChatMessage?
+    ): ServiceFuncResult<Long?> {
+        val headerId = chatHistoryMessageIdGenerator.nextId(0)
+        val messageId = chatHistoryMessageIdGenerator.nextId(0)
+
+        val resultOfSaveMessages = this.saveBatch(listOfNotNull(
+            ChatHistoryMessageEntity(
+                id = headerId,
+                senderType = senderType.typeId,
+                sender = 0,
+                messageType = ChatMessageType.START.typeId,
+                message = "<start>",
+                createdTime = System.currentTimeMillis(),
+                revoked = false
+            ),
+            message?.let {
+                ChatHistoryMessageEntity(
+                    id = messageId,
+                    senderType = senderType.typeId,
+                    sender = senderId,
+                    messageType = it.messageType.typeId,
+                    message = it.originalMessage,
+                    createdTime = System.currentTimeMillis(),
+                    revoked = false
+                )
+            }
+        ))
+
+        val resultOfAddRelation = if (message != null) {
+            chatHistoryMessageRelationService.addChildNode(headerId, messageId)
+        } else {
+            ServiceFuncResult.success("Skipped")
+        }
+
+        return if (resultOfSaveMessages && resultOfAddRelation.success) {
+            ServiceFuncResult.success("Created", headerId)
+        } else {
+            // Rollback Transaction
+            rollbackTransaction()
+
+            if (!resultOfAddRelation.success) {
+                resultOfAddRelation.transform { null }
+            } else {
+                ServiceFuncResult.failedWithData("Could not save messages")
+            }
+        }
+    }
+
+    override fun getFullMessageHistoryTree(headerId: Long): ServiceFuncResult<ChatHistoryMessageEntity?> {
+        val header = this.getById(headerId) ?: return ServiceFuncResult.failedWithData("Header $headerId not found")
+        this.recursiveFindChildrenNodes(header)
+        return ServiceFuncResult.success("", header)
+    }
+
+    @Transactional
+    override fun addNewMessage(
+        parentId: Long,
+        senderType: ChatMemberType,
+        senderId: Long,
+        message: AbstractChatMessage
+    ): ServiceFuncResult<ChatHistoryMessageEntity?> {
+        val messageId = chatHistoryMessageIdGenerator.nextId(0)
+
+        val entity = ChatHistoryMessageEntity(
+            id = messageId,
+            senderType = senderType.typeId,
+            sender = senderId,
+            messageType = message.messageType.typeId,
+            message = message.originalMessage,
+            createdTime = System.currentTimeMillis(),
+            revoked = false
+        )
+
+        val resultOfSaveMessage = this.save(entity)
+
+        val resultOfAddRelation = chatHistoryMessageRelationService.addChildNode(parentId, messageId)
+
+        return if (resultOfSaveMessage && resultOfAddRelation.success) {
+            chatHistoryCacheStore.set(messageId, entity)
+            ServiceFuncResult.success("Created", entity)
+        } else {
+            // Rollback Transaction
+            rollbackTransaction()
+
+            if (!resultOfAddRelation.success) {
+                resultOfAddRelation.transform { null }
+            } else {
+                ServiceFuncResult.failedWithData("Could not save messages")
+            }
+        }
+    }
+
+    override fun modifyMessage(messageId: Long, message: AbstractChatMessage): ServiceFuncResult<*> {
+        val existing = this.getById(messageId) ?: return ServiceFuncResult.failed("Message $messageId not found")
+
+        return if (updateById(existing.apply {
+            this.messageType = message.messageType.typeId
+            this.message = message.originalMessage
+        }))
+            ServiceFuncResult.success("")
+        else
+            ServiceFuncResult.failed("Could not update message: $messageId")
+    }
+
+    override fun revokeMessage(messageId: Long): ServiceFuncResult<*> {
+        val message = this.getById(messageId) ?: return ServiceFuncResult.failed("Message $messageId not found")
+
+        if (message.getMessageTypeEnum() == ChatMessageType.START) {
+            return ServiceFuncResult.failed("Could not revoke the message history start mark")
+        }
+
+        val childrenNodes = chatHistoryMessageRelationService.getChildrenNodes(messageId)
+        if (childrenNodes.size > 1) {
+            val subTreeSearchResult = this.getFullMessageHistoryTree(messageId)
+            if (subTreeSearchResult.success) {
+                val subTree = subTreeSearchResult.data!!
+                val availableLeafNodes = subTree.findAllLeafPaths().map {
+                    subTree.getMessageChainByBranchPath(BranchPath(it)).last { it.isAvailable() }
+                }
+
+                if (availableLeafNodes.count { it.id == messageId } < childrenNodes.size - 1) {
+                    return ServiceFuncResult.failed("Could not revoke a node having other available sub-trees")
+                }
+            } else {
+                return subTreeSearchResult
+            }
+        }
+
+        return if (this.updateById(message.apply { this.revoked = true })) {
+            ServiceFuncResult.success("Success")
+        } else {
+            ServiceFuncResult.failed("Could not update message revoke status")
+        }
+    }
+
+    override fun fetchHistoryMessagesUpwards(messageId: Long, size: Long): ServiceFuncResult<List<ChatHistoryMessageEntity>> {
+        val result = chatHistoryMessageRelationService.searchUpwardsForRoot(messageId, size)
+        return if (result.success) {
+            val rawChain = result.data
+            if (rawChain.isEmpty()) {
+                // The given message is the only one in history
+                ServiceFuncResult.success("", emptyList())
+            } else {
+                val rawMessageEntities = chatHistoryCacheStore.batchGet(rawChain.map { it.currentId }).values.filterNotNull()
+
+                val children = chatHistoryMessageRelationService.batchGetChildrenNodes(rawMessageEntities.map { it.id })
+
+                ServiceFuncResult.success(
+                    message = "",
+                    data = rawMessageEntities.map {
+                        it.apply {
+                            this.childrenSize = children[this.id]?.size ?: 0
+                        }
+                    }
+                )
+            }
+        } else {
+            result.transform { listOf() }
+        }
+    }
+
+    private fun recursiveFindChildrenNodes(parent: ChatHistoryMessageEntity) {
+        val childrenNodes = chatHistoryMessageRelationService.getChildrenNodes(parent.id)
+        if (childrenNodes.isEmpty()) {
+            return
+        }
+
+        val children = chatHistoryCacheStore.batchGet(childrenNodes.map { it.nextId }).values.filterNotNull()
+
+        children.forEach {
+            this.recursiveFindChildrenNodes(it)
+        }
+
+        parent.addChildNodes(children)
+    }
+}

@@ -4,12 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.lovelycatv.ai</groupId>
-        <artifactId>CrystalApp</artifactId>
+        <groupId>com.lovelycatv.ai.crystalapp</groupId>
+        <artifactId>crystal-main-module</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>crystal-app-main</artifactId>
+    <artifactId>crystal-main-module-implementations</artifactId>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -20,7 +20,12 @@
     <dependencies>
         <dependency>
             <groupId>com.lovelycatv.ai.crystalapp</groupId>
-            <artifactId>common-module</artifactId>
+            <artifactId>crystal-main-module-declarations</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.lovelycatv.ai.crystalapp</groupId>
+            <artifactId>file-resource-module-declarations</artifactId>
         </dependency>
 
         <dependency>
@@ -29,13 +34,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.lovelycatv.ai.crystalapp</groupId>
-            <artifactId>crystal-main-module-implementations</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.lovelycatv.ai.crystalapp</groupId>
-            <artifactId>file-resource-module-implementations</artifactId>
+            <groupId>com.lovelycatv.ai.crystal.openaiapi</groupId>
+            <artifactId>open-api-common</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
@@ -50,5 +51,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

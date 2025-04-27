@@ -9,9 +9,12 @@ object PrincipalUtils {
 
 fun <T> withPrincipal(principal: Principal, fx: (AuthPrincipal) -> T): T {
     return if (principal is JwtAuthenticationToken) {
+        val uid = principal.tokenAttributes["uid"] as? Long?
+            ?: (principal.tokenAttributes["uid"] as? Int?)?.toLong()
+            ?: (principal.tokenAttributes["uid"] as? String?)?.toLong()
         fx.invoke(AuthPrincipal(
             username = principal.name,
-            userId = principal.tokenAttributes["uid"] as? Long? ?: throw IllegalStateException("Principal ${principal.name} does not have a valid uid"),
+            userId = uid ?: throw IllegalStateException("Principal ${principal.name} does not have a valid uid, payloads: ${principal.tokenAttributes}"),
             permissions = principal.authorities.map { it.toString() }
         ))
     } else {

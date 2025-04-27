@@ -4,40 +4,18 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.lovelycatv.ai</groupId>
-        <artifactId>CrystalApp</artifactId>
+        <groupId>com.lovelycatv.ai.crystalapp</groupId>
+        <artifactId>crystal-main-module</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>crystal-app-main</artifactId>
+    <artifactId>crystal-main-module-declarations</artifactId>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>com.lovelycatv.ai.crystalapp</groupId>
-            <artifactId>common-module</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.lovelycatv.auth</groupId>
-            <artifactId>authorization-module</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.lovelycatv.ai.crystalapp</groupId>
-            <artifactId>crystal-main-module-implementations</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.lovelycatv.ai.crystalapp</groupId>
-            <artifactId>file-resource-module-implementations</artifactId>
-        </dependency>
-    </dependencies>
 
     <build>
         <sourceDirectory>src/main/kotlin</sourceDirectory>
@@ -50,5 +28,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
