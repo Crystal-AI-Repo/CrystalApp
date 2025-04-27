@@ -25,6 +25,32 @@ data class ServiceFuncResult<T>(
     }
 }
 
+fun <T, R> ServiceFuncResult<T>.runIfSuccess(fx: (ServiceFuncResult<T>) -> R): R? {
+    return if (this.success) fx.invoke(this) else null
+}
+
+fun <T> ServiceFuncResult<T>.runIfSuccess(fx: (ServiceFuncResult<T>) -> Unit): ServiceFuncResult<T> {
+    if (this.success) fx.invoke(this)
+    return this
+}
+
+fun <T, R> ServiceFuncResult<T>.runIfFailed(fx: (ServiceFuncResult<T>) -> R): R? {
+    return if (!this.success) fx.invoke(this) else null
+}
+
+fun <T> ServiceFuncResult<T>.runIfFailed(fx: (ServiceFuncResult<T>) -> Unit): ServiceFuncResult<T> {
+    if (!this.success) fx.invoke(this)
+    return this
+}
+
+fun <A, R: Any> ServiceFuncResult<A>.then(fx: (A) -> ServiceFuncResult<R?>): ServiceFuncResult<R?> {
+    return if (this.success) {
+        fx.invoke(this.data)
+    } else {
+        this.transform { null }
+    }
+}
+
 fun <T, R> ServiceFuncResult<T>.transform(fx: (T) -> R): ServiceFuncResult<R> {
     return ServiceFuncResult(
         success = this.success,

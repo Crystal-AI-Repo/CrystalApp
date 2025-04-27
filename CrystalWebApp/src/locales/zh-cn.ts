@@ -50,6 +50,8 @@ export default {
         newCharacter: {
             titleNewCharacter: "创建新角色",
             titleEditCharacter: "编辑 {name}",
+            characterAvatar: "头像",
+            characterBackground: "背景",
             characterName: "名称",
             characterNameTips: "此角色的名称",
             characterDescription: "描述",

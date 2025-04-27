@@ -6,12 +6,18 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl
 import com.lovelycatv.ai.crystalapp.common.PagedData
 import com.lovelycatv.ai.crystalapp.common.ServiceFuncResult
+import com.lovelycatv.ai.crystalapp.common.runIfFailed
 import com.lovelycatv.ai.crystalapp.common.utils.getPagedData
+import com.lovelycatv.ai.crystalapp.common.utils.rollbackTransaction
 import com.lovelycatv.ai.crystalapp.entity.ChatCharacterEntity
 import com.lovelycatv.ai.crystalapp.mapper.ChatCharacterMapper
+import com.lovelycatv.ai.crystalapp.resource.enums.FileResourceStorageType
+import com.lovelycatv.ai.crystalapp.resource.enums.FileResourceType
+import com.lovelycatv.ai.crystalapp.resource.service.ResourceService
 import com.lovelycatv.ai.crystalapp.service.ChatCharacterService
 import com.lovelycatv.ai.crystalapp.service.ModelService
 import org.springframework.stereotype.Service
+import org.springframework.web.multipart.MultipartFile
 
 /**
  * @author lovelycat
@@ -20,7 +26,8 @@ import org.springframework.stereotype.Service
  */
 @Service
 class ChatCharacterServiceImpl(
-    private val modelService: ModelService
+    private val modelService: ModelService,
+    private val fileResourceService: ResourceService
 ) : ChatCharacterService, ServiceImpl<ChatCharacterMapper, ChatCharacterEntity?>() {
     override fun saveOrUpdateCharacter(
         caller: Long,
@@ -31,10 +38,48 @@ class ChatCharacterServiceImpl(
         prompt: String,
         greeting: String,
         privacy: Boolean,
-        avatar: String
+        avatar: MultipartFile?,
+        background: MultipartFile?
     ): ServiceFuncResult<*> {
         val modelEntity = modelService.getByQualifiedName(qualifiedModelName)
             ?: return ServiceFuncResult.failed("Model $qualifiedModelName not found")
+
+        // Save resources
+        val avatarSaveResult = if (avatar != null) {
+            val t = fileResourceService.saveResource(
+                caller,
+                avatar.originalFilename!!,
+                avatar.inputStream,
+                FileResourceStorageType.LOCAL,
+                FileResourceType.CHARACTER_AVATAR
+            )
+
+            if (t.success) t else {
+                rollbackTransaction()
+
+                return ServiceFuncResult.failed("Could not save avatar")
+            }
+        } else {
+            ServiceFuncResult.success("", null)
+        }
+
+        val backgroundSaveResult = if (background != null) {
+            val t = fileResourceService.saveResource(
+                caller,
+                background.originalFilename!!,
+                background.inputStream,
+                FileResourceStorageType.LOCAL,
+                FileResourceType.CHARACTER_BACKGROUND
+            )
+
+            if (t.success) t else {
+                rollbackTransaction()
+
+                return ServiceFuncResult.failed("Could not save background")
+            }
+        } else {
+            ServiceFuncResult.success("", null)
+        }
 
         if (characterId != null) {
             val exist = getById(characterId) ?: return ServiceFuncResult.failed("Character $characterId not found")
@@ -50,12 +95,15 @@ class ChatCharacterServiceImpl(
                 this.prompt = prompt
                 this.greetingMessage = greeting
                 this.privacy = privacy
-                this.avatar = avatar
+                this.avatar = avatarSaveResult.data?.toString() ?: ""
+                this.background = backgroundSaveResult.data?.toString() ?: ""
 
                 this.modifiedTime = System.currentTimeMillis()
             })) {
                 ServiceFuncResult.success("Character $name updated successfully")
             } else {
+                rollbackTransaction()
+
                 ServiceFuncResult.failed("Could not update character")
             }
         } else {
@@ -69,7 +117,8 @@ class ChatCharacterServiceImpl(
                     greeting,
                     modelEntity.id!!,
                     modelEntity.contextLength,
-                    avatar,
+                    avatarSaveResult.data?.toString() ?: "",
+                    backgroundSaveResult.data?.toString() ?: "",
                     System.currentTimeMillis(),
                     System.currentTimeMillis(),
                     privacy,
@@ -78,6 +127,8 @@ class ChatCharacterServiceImpl(
                 )) {
                 ServiceFuncResult.success("Character $name saved successfully")
             } else {
+                rollbackTransaction()
+
                 ServiceFuncResult.failed("Could not save character")
             }
         }

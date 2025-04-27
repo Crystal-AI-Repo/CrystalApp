@@ -69,11 +69,12 @@ function jumpTo(path: string) {
 <style scoped>
 .main-container {
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
   box-sizing: border-box;
   padding-left: 15%;
   padding-right: 15%;
   padding-top: 128px;
+  padding-bottom: 128px;
 
   .nav {
     min-width: 256px;

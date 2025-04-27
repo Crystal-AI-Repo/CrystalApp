@@ -13,6 +13,8 @@ import com.lovelycatv.ai.crystalapp.resource.mapper.ResourceMapper
 import com.lovelycatv.ai.crystalapp.resource.util.FileResourceUtils
 import jakarta.annotation.Resource
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
+import org.springframework.transaction.annotation.Transactional
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -33,6 +35,7 @@ class ResourceServiceImpl(
 ) : ResourceService, ServiceImpl<ResourceMapper, ResourceEntity?>() {
     private val logger = logger()
 
+    @Transactional(propagation = Propagation.SUPPORTS)
     @OptIn(ExperimentalStdlibApi::class)
     override fun saveResource(
         owner: Long,

@@ -35,7 +35,10 @@ crystal:
   resource:
     local:
       base-path: D:/crystal-app-data
-      avatar-path: /avatar
+      user-avatar-path: /user/avatar
+      user-background-path: /user/background
+      character-avatar-path: /character/avatar
+      character-background-path: /character/background
 
 # logging:
 #   level:

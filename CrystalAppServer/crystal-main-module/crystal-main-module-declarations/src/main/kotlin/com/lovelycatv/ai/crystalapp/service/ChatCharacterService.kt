@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService
 import com.lovelycatv.ai.crystalapp.common.PagedData
 import com.lovelycatv.ai.crystalapp.common.ServiceFuncResult
 import com.lovelycatv.ai.crystalapp.entity.ChatCharacterEntity
+import org.springframework.web.multipart.MultipartFile
 
 /**
  * @author lovelycat
@@ -20,7 +21,8 @@ interface ChatCharacterService : IService<ChatCharacterEntity?> {
         prompt: String,
         greeting: String,
         privacy: Boolean,
-        avatar: String
+        avatar: MultipartFile?,
+        background: MultipartFile?
     ): ServiceFuncResult<*>
 
     /**

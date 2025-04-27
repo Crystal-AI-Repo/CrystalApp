@@ -41,7 +41,7 @@ class UserResourceController(
     @PostMapping("/uploadAvatar")
     fun uploadAvatar(authPrincipal: AuthPrincipal, @RequestParam("file") file: MultipartFile): Result<*> {
         val uploadResult = resourceService.saveResource(
-            authPrincipal.userId, file.originalFilename!!, file.inputStream, FileResourceStorageType.LOCAL, FileResourceType.AVATAR
+            authPrincipal.userId, file.originalFilename!!, file.inputStream, FileResourceStorageType.LOCAL, FileResourceType.USER_AVATAR
         )
 
         return if (uploadResult.success) {

@@ -28,8 +28,7 @@ import org.springframework.web.multipart.MultipartFile
 @RestController
 @RequestMapping("/character")
 class ChatCharacterController(
-    private val chatCharacterService: ChatCharacterService,
-    private val fileResourceService: ResourceService
+    private val chatCharacterService: ChatCharacterService
 ) {
     @PostMapping("/save")
     fun addOrUpdateCharacter(
@@ -49,10 +48,12 @@ class ChatCharacterController(
         @RequestParam("privacy")
         privacy: Boolean,
         @RequestParam("avatar")
-        avatar: MultipartFile?
+        avatar: MultipartFile?,
+        @RequestParam("background")
+        background: MultipartFile?
     ): Result<*> {
-        val fxSave = fun (avatar: String): ServiceFuncResult<*> {
-            return chatCharacterService.saveOrUpdateCharacter(
+        return catchException {
+            chatCharacterService.saveOrUpdateCharacter(
                 caller = authPrincipal.userId,
                 characterId = id,
                 name = name,
@@ -61,28 +62,9 @@ class ChatCharacterController(
                 prompt = prompt,
                 greeting = greeting,
                 privacy = privacy,
-                avatar = avatar
-            )
-        }
-
-        return catchException {
-            if (avatar != null) {
-                val avatarSaveResult = fileResourceService.saveResource(
-                    authPrincipal.userId,
-                    avatar.originalFilename!!,
-                    avatar.inputStream,
-                    FileResourceStorageType.LOCAL,
-                    FileResourceType.AVATAR
-                )
-
-                if (avatarSaveResult.success) {
-                   fxSave(avatarSaveResult.data?.toString() ?: "")
-                } else {
-                    avatarSaveResult
-                }
-            } else {
-                fxSave("")
-            }.transformServiceFuncResult()
+                avatar = avatar,
+                background = background
+            ).transformServiceFuncResult()
         }
     }
 

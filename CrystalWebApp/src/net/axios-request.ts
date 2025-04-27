@@ -148,4 +148,8 @@ export const textHtml = "text/html"
 
 export const applicationFormUrlEncoded = "application/x-www-form-urlencoded"
 
+export const multiPartFormData = "multipart/form-data"
+
 export const applicationFormUrlEncodedHeader = { 'Content-Type': applicationFormUrlEncoded }
+
+export const multiPartFormDataHeader = { 'Content-Type': multiPartFormData }

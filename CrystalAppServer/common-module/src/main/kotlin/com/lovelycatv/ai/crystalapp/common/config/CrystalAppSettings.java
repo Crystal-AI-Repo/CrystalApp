@@ -82,22 +82,49 @@ public class CrystalAppSettings {
 
         public static class Local {
             private String basePath;
-            private String avatarPath;
-
-            public String getAvatarPath() {
-                return avatarPath;
-            }
+            private String userAvatarPath;
+            private String userBackgroundPath;
+            private String characterAvatarPath;
+            private String characterBackgroundPath;
 
             public String getBasePath() {
                 return basePath;
             }
 
-            public void setAvatarPath(String avatarPath) {
-                this.avatarPath = avatarPath;
+            public String getCharacterAvatarPath() {
+                return characterAvatarPath;
+            }
+
+            public String getCharacterBackgroundPath() {
+                return characterBackgroundPath;
+            }
+
+            public String getUserAvatarPath() {
+                return userAvatarPath;
+            }
+
+            public String getUserBackgroundPath() {
+                return userBackgroundPath;
             }
 
             public void setBasePath(String basePath) {
                 this.basePath = basePath;
+            }
+
+            public void setCharacterAvatarPath(String characterAvatarPath) {
+                this.characterAvatarPath = characterAvatarPath;
+            }
+
+            public void setCharacterBackgroundPath(String characterBackgroundPath) {
+                this.characterBackgroundPath = characterBackgroundPath;
+            }
+
+            public void setUserAvatarPath(String userAvatarPath) {
+                this.userAvatarPath = userAvatarPath;
+            }
+
+            public void setUserBackgroundPath(String userBackgroundPath) {
+                this.userBackgroundPath = userBackgroundPath;
             }
         }
     }

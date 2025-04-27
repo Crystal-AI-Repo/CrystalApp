@@ -32,4 +32,16 @@ class ChatCharacterResourceController(
         }
     }
 
+    @GetMapping("/background")
+    fun getCharacterBackground(@RequestParam("id") characterId: Long): Any? {
+        val character = characterService.getById(characterId) ?: return Result.badRequest("Character $characterId not found")
+        return if (character.background.isNotBlank()) {
+            resourceController.getResource(character.background.toLong())
+        } else {
+            ResponseEntity.ok()
+                .header("Content-Type", "image/png")
+                .body(ClassPathResource("/static/images/akarin.png"))
+        }
+    }
+
 }

@@ -49,7 +49,8 @@ class AuthorizationModuleImpls(
                     "/contact/sendMessage",
                     "/resource/view/**",
                     "/resource/user/avatar",
-                    "/resource/character/avatar"
+                    "/resource/character/avatar",
+                    "/resource/character/background"
                 )
             }
 

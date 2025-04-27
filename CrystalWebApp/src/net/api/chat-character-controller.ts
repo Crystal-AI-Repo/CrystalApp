@@ -1,4 +1,4 @@
-import {applicationFormUrlEncodedHeader, doGet, doPost} from "@/net/axios-request.ts";
+import {applicationFormUrlEncodedHeader, doGet, doPost, multiPartFormDataHeader} from "@/net/axios-request.ts";
 import {userTokenHeader} from "@/utils/auth-utils.ts";
 import type {PagedData} from "@/net/PagedData.ts";
 
@@ -12,6 +12,7 @@ export interface ChatCharacter {
     modelId: string,
     maxContextLength: number,
     avatar: string,
+    background: string,
     createdTime: string,
     modifiedTime: string,
     privacy: boolean
@@ -21,6 +22,7 @@ export const getEmptyChatCharacter = (): ChatCharacter => {
     return {
         authorUid: "0",
         avatar: "",
+        background: "",
         createdTime: "0",
         description: "",
         greetingMessage: "",
@@ -41,7 +43,9 @@ export interface SaveChatCharacterDTO {
     model: string,
     prompt: string,
     greeting: string,
-    privacy: boolean
+    privacy: boolean,
+    avatar: File | null,
+    background: File | null
 }
 
 export async function getChatCharacterDetails(characterId: string) {
@@ -57,9 +61,25 @@ export async function getMyCreatedChatCharacters(page: number) {
 }
 
 export async function saveChatCharacter(dto: SaveChatCharacterDTO) {
+    const formData = new FormData();
+
+    Object.entries(dto).forEach(([key, value]) => {
+        if (key !== 'avatar' && value !== undefined) {
+            formData.append(key, typeof value === 'object' ? JSON.stringify(value) : value.toString());
+        }
+    })
+
+    if (dto.avatar instanceof File) {
+        formData.append('avatar', dto.avatar)
+    }
+
+    if (dto.background instanceof File) {
+        formData.append('background', dto.background)
+    }
+
     return await doPost(
         "/api/character/save",
-        {...userTokenHeader(), ...applicationFormUrlEncodedHeader},
+        {...userTokenHeader(), ...multiPartFormDataHeader},
         {...dto}
     )
 }

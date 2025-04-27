@@ -1,9 +1,13 @@
 package com.lovelycatv.ai.crystalapp.resource.util
 
+import com.lovelycatv.ai.crystalapp.common.Result
 import com.lovelycatv.ai.crystalapp.common.config.CrystalAppSettings
 import com.lovelycatv.ai.crystalapp.resource.entity.ResourceEntity
 import com.lovelycatv.ai.crystalapp.resource.enums.FileResourceStorageType
 import com.lovelycatv.ai.crystalapp.resource.enums.FileResourceType
+import com.lovelycatv.ai.crystalapp.resource.service.ResourceService
+import org.springframework.core.io.ClassPathResource
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 
 /**
@@ -22,7 +26,10 @@ class FileResourceUtils(
 
         val fileRelativePath = when (type) {
             FileResourceType.FILE -> ""
-            FileResourceType.AVATAR -> crystalAppSettings.resource.local.avatarPath
+            FileResourceType.USER_AVATAR -> crystalAppSettings.resource.local.userAvatarPath
+            FileResourceType.USER_BACKGROUND -> crystalAppSettings.resource.local.userBackgroundPath
+            FileResourceType.CHARACTER_AVATAR -> crystalAppSettings.resource.local.characterAvatarPath
+            FileResourceType.CHARACTER_BACKGROUND -> crystalAppSettings.resource.local.characterBackgroundPath
         }
 
         return basePath + fileRelativePath

@@ -32,6 +32,7 @@ declare module 'vue' {
     ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
     ElTag: typeof import('element-plus/es')['ElTag']
     ElText: typeof import('element-plus/es')['ElText']
+    ElUpload: typeof import('element-plus/es')['ElUpload']
     HeaderComponenet: typeof import('./src/components/HeaderComponenet.vue')['default']
     HeaderComponent: typeof import('./src/components/HeaderComponent.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

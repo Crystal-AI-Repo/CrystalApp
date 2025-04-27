@@ -14,7 +14,7 @@ import {useI18n} from "vue-i18n";
 import {addChatCharacterContact} from "@/net/api/user-contact-controller.ts";
 import {showSimpleDialog} from "@/utils/dialog-utils.ts";
 import {DelayedAction} from "@/utils/delay-utils.ts";
-import {getUserAvatarUrl} from "@/utils/url-utils.ts";
+import {getCharacterBackgroundUrl, getUserAvatarUrl} from "@/utils/url-utils.ts";
 import {userProfileStore} from "@/stores/generic-kv-store.ts";
 
 /**
@@ -143,7 +143,7 @@ function confirmAddChatCharacter(character: ChatCharacter) {
                 <p class="character-description">{{ item.description.length > 18 ? item.description.slice(0, 18) + '...' : item.description }}</p>
               </div>
 
-              <img class="avatar" :alt="item.name" src="@/assets/main-background.png" />
+              <img class="avatar" :alt="item.name" :src="getCharacterBackgroundUrl(item.id)" />
             </div>
 
             <div class="flex flex-horizontal flex-center-vertically p-2">

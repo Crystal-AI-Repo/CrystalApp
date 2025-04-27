@@ -16,3 +16,8 @@ export function getCharacterAvatarUrl(id: string) {
     const serverBaseUrl = import.meta.env.VITE_SERVER_BASE_URL
     return serverBaseUrl + '/resource/character/avatar?id=' + id
 }
+
+export function getCharacterBackgroundUrl(id: string) {
+    const serverBaseUrl = import.meta.env.VITE_SERVER_BASE_URL
+    return serverBaseUrl + '/resource/character/background?id=' + id
+}

@@ -5,6 +5,8 @@ import com.lovelycatv.ai.crystalapp.common.ServiceFuncResult
 import com.lovelycatv.ai.crystalapp.resource.entity.ResourceEntity
 import com.lovelycatv.ai.crystalapp.resource.enums.FileResourceStorageType
 import com.lovelycatv.ai.crystalapp.resource.enums.FileResourceType
+import org.springframework.transaction.annotation.Propagation
+import org.springframework.transaction.annotation.Transactional
 import java.io.InputStream
 
 /**
@@ -13,6 +15,7 @@ import java.io.InputStream
  * @version 1.0
  */
 interface ResourceService : IService<ResourceEntity?> {
+    @Transactional(propagation = Propagation.SUPPORTS)
     fun saveResource(
         owner: Long,
         fileName: String,

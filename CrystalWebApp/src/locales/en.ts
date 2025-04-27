@@ -50,6 +50,8 @@ export default {
         newCharacter: {
             titleNewCharacter: "New Character",
             titleEditCharacter: "Edit {name}",
+            characterAvatar: "Avatar",
+            characterBackground: "Background",
             characterName: "Name",
             characterNameTips: "This is the name for this character",
             characterDescription: "Description",
