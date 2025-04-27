@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl
 import com.lovelycatv.ai.crystalapp.common.PagedData
 import com.lovelycatv.ai.crystalapp.common.ServiceFuncResult
+import com.lovelycatv.ai.crystalapp.common.utils.getPagedData
 import com.lovelycatv.ai.crystalapp.entity.ChatCharacterEntity
 import com.lovelycatv.ai.crystalapp.mapper.ChatCharacterMapper
 import com.lovelycatv.ai.crystalapp.service.ChatCharacterService
@@ -28,7 +29,8 @@ class ChatCharacterServiceImpl(
         description: String,
         qualifiedModelName: String,
         prompt: String,
-        greeting: String
+        greeting: String,
+        privacy: Boolean
     ): ServiceFuncResult<*> {
         val modelEntity = modelService.getByQualifiedName(qualifiedModelName)
             ?: return ServiceFuncResult.failed("Model $qualifiedModelName not found")
@@ -46,6 +48,7 @@ class ChatCharacterServiceImpl(
                 this.maxContextLength = modelEntity.contextLength
                 this.prompt = prompt
                 this.greetingMessage = greeting
+                this.privacy = privacy
 
                 this.modifiedTime = System.currentTimeMillis()
             })) {
@@ -66,6 +69,7 @@ class ChatCharacterServiceImpl(
                     "",
                     System.currentTimeMillis(),
                     System.currentTimeMillis(),
+                    privacy,
                 false
             ))) {
                 ServiceFuncResult.success("Character $name saved successfully")
@@ -144,16 +148,13 @@ class ChatCharacterServiceImpl(
     }
 
     override fun getMostRecentCharacters(page: Long, pageSize: Long): ServiceFuncResult<PagedData<ChatCharacterEntity>> {
-        val pager = Page<ChatCharacterEntity>(page, pageSize)
-        val result = page(pager, QueryWrapper<ChatCharacterEntity>().eq("deleted", false).orderByDesc("created_time"))
         return ServiceFuncResult.success(
             "",
-            PagedData(
-                total = result.total,
-                pages = result.pages,
-                current = page,
-                records = result.records
-            )
+            getPagedData(page, pageSize) {
+                this.eq("deleted", false)
+                    .eq("privacy", true)
+                    .orderByDesc("created_time")
+            }
         )
     }
 }

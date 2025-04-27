@@ -20,7 +20,8 @@ interface NewRoleForm {
   characterDescription: string,
   characterPrompt: string,
   characterGreeting: string,
-  characterModel: string
+  characterModel: string,
+  characterPrivacy: boolean
 }
 
 const idFromDataLoading = ref(true)
@@ -30,7 +31,8 @@ const form = ref<NewRoleForm>({
   characterDescription: "",
   characterGreeting: "",
   characterPrompt: "",
-  characterModel: ""
+  characterModel: "",
+  characterPrivacy: false
 })
 
 
@@ -47,7 +49,7 @@ if (!mode.value) {
     ElMessage.error(t('manager.newCharacter.text.invalidCharacterId'))
   }
 
-   getChatCharacterDetails(Number.parseInt(characterId)).then((res) => {
+   getChatCharacterDetails(characterId).then((res) => {
      idFromDataLoading.value = false
      editingCharacter.value = res
      form.value = {
@@ -55,7 +57,8 @@ if (!mode.value) {
        characterDescription: res.description,
        characterGreeting: res.greetingMessage,
        characterPrompt: res.prompt,
-       characterModel: res.modelId
+       characterModel: res.modelId,
+       characterPrivacy: res.privacy
      }
    }).catch((err) => {
      idFromDataLoading.value = true
@@ -118,7 +121,8 @@ async function submit(formEl: FormInstance | undefined) {
               greeting: form.value.characterGreeting,
               model: form.value.characterModel,
               name: form.value.characterName,
-              prompt: form.value.characterPrompt
+              prompt: form.value.characterPrompt,
+              privacy: form.value.characterPrivacy
             }
           })
 
@@ -192,6 +196,19 @@ async function submit(formEl: FormInstance | undefined) {
       </el-form-item>
       <el-alert class="tips" type="info" show-icon :closable="false">
         <p>{{ t('manager.newCharacter.characterGreetingTips') }}</p>
+      </el-alert>
+
+      <!-- Role Privacy -->
+      <el-form-item :label="t('manager.newCharacter.characterPrivacy')" prop="characterGreeting">
+        <el-switch
+            v-model="form.characterPrivacy"
+            size="large"
+            :active-text="t('manager.newCharacter.text.public')"
+            :inactive-text="t('manager.newCharacter.text.private')"
+        />
+      </el-form-item>
+      <el-alert class="tips" type="info" show-icon :closable="false">
+        <p>{{ t('manager.newCharacter.characterPrivacyTips') }}</p>
       </el-alert>
 
       <!-- Buttons -->

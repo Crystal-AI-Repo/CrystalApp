@@ -39,7 +39,9 @@ class ChatCharacterController(
         @RequestParam("prompt")
         prompt: String,
         @RequestParam("greeting")
-        greeting: String
+        greeting: String,
+        @RequestParam("privacy")
+        privacy: Boolean
     ): Result<*> {
         return catchException {
             chatCharacterService.saveOrUpdateCharacter(
@@ -49,7 +51,8 @@ class ChatCharacterController(
                 description = description,
                 qualifiedModelName = model,
                 prompt = prompt,
-                greeting = greeting
+                greeting = greeting,
+                privacy = privacy
             ).transformServiceFuncResult()
         }
     }

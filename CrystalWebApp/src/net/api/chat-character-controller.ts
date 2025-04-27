@@ -13,7 +13,8 @@ export interface ChatCharacter {
     maxContextLength: number,
     avatar: string,
     createdTime: string,
-    modifiedTime: string
+    modifiedTime: string,
+    privacy: boolean
 }
 
 export const getEmptyChatCharacter = (): ChatCharacter => {
@@ -28,7 +29,8 @@ export const getEmptyChatCharacter = (): ChatCharacter => {
         modelId: "",
         modifiedTime: "0",
         name: "",
-        prompt: ""
+        prompt: "",
+        privacy: true
     }
 }
 
@@ -38,7 +40,8 @@ export interface SaveChatCharacterDTO {
     description: string,
     model: string,
     prompt: string,
-    greeting: string
+    greeting: string,
+    privacy: boolean
 }
 
 export async function getChatCharacterDetails(characterId: string) {

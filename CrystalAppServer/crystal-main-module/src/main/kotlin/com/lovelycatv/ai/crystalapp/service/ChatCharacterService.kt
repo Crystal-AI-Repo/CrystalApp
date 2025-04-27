@@ -18,7 +18,8 @@ interface ChatCharacterService : IService<ChatCharacterEntity?> {
         description: String,
         qualifiedModelName: String,
         prompt: String,
-        greeting: String
+        greeting: String,
+        privacy: Boolean
     ): ServiceFuncResult<*>
 
     /**

@@ -60,6 +60,8 @@ export default {
             characterPromptTips: "Write all the character settings here",
             characterGreeting: "Greeting Message",
             characterGreetingTips: "The first message the character sends to the user",
+            characterPrivacy: "Privacy",
+            characterPrivacyTips: "Publish to everyone or visible only yourself",
             button: {
                 submit: "Submit"
             },
@@ -69,7 +71,9 @@ export default {
                 emptyCharacterPrompt: "Character prompt could not be empty",
                 emptyCharacterGreeting: "Character greeting message could not be empty",
                 emptyCharacterModel: "Please select a model",
-                invalidCharacterId: "Invalid character id"
+                invalidCharacterId: "Invalid character id",
+                private: "Private",
+                public: "Public"
             }
         },
         models: {

@@ -60,6 +60,8 @@ export default {
             characterPromptTips: "在这里写角色的所有设定",
             characterGreeting: "打招呼消息",
             characterGreetingTips: "角色发送给用户的第一句话",
+            characterPrivacy: "隐私",
+            characterPrivacyTips: "向所有人公开或仅自己可见",
             button: {
                 submit: "提交"
             },
@@ -69,7 +71,9 @@ export default {
                 emptyCharacterPrompt: "提示词不能为空",
                 emptyCharacterGreeting: "角色打招呼消息不能为空",
                 emptyCharacterModel: "请选择一个模型",
-                invalidCharacterId: "无效的角色 Id"
+                invalidCharacterId: "无效的角色 Id",
+                private: "私密",
+                public: "公开"
             }
         },
         models: {
